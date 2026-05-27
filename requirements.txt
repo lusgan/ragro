@@ -1,0 +1,8 @@
+langchain
+langchain-qdrant
+qdrant-client
+voyageai
+langchain-voyageai
+python-dotenv
+PyPDF2
+opendataloader-pdf
