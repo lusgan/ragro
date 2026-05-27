@@ -1,8 +1,7 @@
 langchain
-langchain-qdrant
-qdrant-client
+qdrant-client[fastembed]
 voyageai
-langchain-voyageai
 python-dotenv
-PyPDF2
-opendataloader-pdf
+opendataloader-pdf[hybrid]
+fastembed
+transformers

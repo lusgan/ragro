@@ -1,66 +1,59 @@
-import os
-from PyPDF2 import PdfReader
+import logging
+from pathlib import Path
 
-class MCRExtractor:
-    def __init__(self, file_path: str):
-        self.file_path = file_path
+logger = logging.getLogger(__name__)
 
-    def extract(self) -> list[str]:
-        """
-        Lê o PDF e extrai as páginas.
-        Tenta utilizar OpenDataLoader para preservar tabelas (Markdown),
-        fazendo fallback para PyPDF2.
-        """
-        if not os.path.exists(self.file_path):
-            raise FileNotFoundError(f"Arquivo não encontrado: {self.file_path}")
+MCR_PDF_PATH = "data/MCR.pdf"
+MCR_MD_PATH  = "data/MCR.md"
 
-        print(f"Iniciando a extração do documento: {self.file_path}")
-        pages_content = []
 
-        # TODO: Adicionar lógica com OpenDataLoader aqui quando a lib estiver configurada.
-        # Fallback para PyPDF2
-        pages_content = self._extract_with_pypdf2()
-        
-        return pages_content
+def extract(
+    pdf_path: str = MCR_PDF_PATH,
+    md_path: str = MCR_MD_PATH,
+    use_hybrid: bool = False,
+) -> str:
+    """Converte MCR.pdf em MCR.md.
 
-    def _extract_with_pypdf2(self) -> list[str]:
-        pages_content = []
-        try:
-            reader = PdfReader(self.file_path)
-            for page in reader.pages:
-                text = page.extract_text()
-                if text:
-                    clean_text = self._clean_text(text)
-                    pages_content.append(clean_text)
-            print(f"Extração concluída via PyPDF2. {len(pages_content)} páginas processadas.")
-        except Exception as e:
-            print(f"Erro ao extrair com PyPDF2: {e}")
-        
-        return pages_content
+    Se use_hybrid=True, ativa OCR docling-fast para páginas com fontes CID sem
+    mapeamento Unicode. Requer:
+      1. pip install "opendataloader-pdf[hybrid]"
+      2. Servidor rodando: opendataloader-pdf-hybrid --port 5002
+    """
+    out = Path(md_path)
+    if out.exists():
+        logger.info("MCR.md já existe em '%s' — extração pulada.", md_path)
+        return md_path
 
-    def _clean_text(self, text: str) -> str:
-        """
-        Limpa texto de cabeçalhos e rodapés repetitivos, como 'Banco Central do Brasil'.
-        """
-        lines = text.split('\n')
-        cleaned_lines = []
-        for line in lines:
-            # Remover possíveis cabeçalhos do documento
-            if "Banco Central do Brasil" in line:
-                continue
-            cleaned_lines.append(line)
-        return "\n".join(cleaned_lines)
+    src = Path(pdf_path)
+    if not src.exists():
+        raise FileNotFoundError(f"PDF não encontrado: {pdf_path}")
 
-if __name__ == "__main__":
-    # Caminho do arquivo a ser lido na pasta data
-    base_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-    pdf_path = os.path.join(base_dir, "data", "mcr.pdf")
-    
-    extractor = MCRExtractor(pdf_path)
-    # Apenas para testar, irá falhar caso o mcr.pdf não exista ainda em /data
+    hybrid_mode = "docling-fast" if use_hybrid else None
+    logger.info(
+        "Convertendo '%s' para Markdown via OpenDataLoader (hybrid=%s)...",
+        pdf_path,
+        hybrid_mode or "off",
+    )
     try:
-        textos = extractor.extract()
-        if textos:
-            print(f"Primeiros 500 caracteres da extração:\n{textos[0][:500]}")
-    except Exception as e:
-        print(f"Atenção no teste: {e}")
+        from opendataloader_pdf import convert
+        convert(
+            input_path=[pdf_path],
+            output_dir=str(out.parent) + "/",
+            format="markdown",
+            hybrid=hybrid_mode,
+            hybrid_fallback=True,   # fallback para Java se o backend falhar (evita fail-fast)
+        )
+    except ImportError as exc:
+        raise RuntimeError(
+            "opendataloader-pdf não instalado. Execute: pip install \"opendataloader-pdf[hybrid]\"\n"
+            "Requer Java 11+ instalado na máquina."
+        ) from exc
+
+    if not out.exists():
+        raise RuntimeError(
+            f"Conversão falhou: '{md_path}' não foi gerado. "
+            "Verifique se Java 11+ está instalado e se o PDF não está corrompido."
+        )
+
+    logger.info("Conversão concluída: '%s'", md_path)
+    return md_path
