@@ -5,3 +5,5 @@ python-dotenv
 opendataloader-pdf[hybrid]
 fastembed
 transformers
+pypdf
+azure-ai-documentintelligence

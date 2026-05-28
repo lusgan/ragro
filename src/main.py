@@ -5,7 +5,7 @@ from fastembed import SparseTextEmbedding
 from . import config  # noqa: F401 — aciona load_dotenv() e logging.basicConfig
 from .chunker import get_all_chunks
 from .database import COLLECTION_NAME, get_client, init_collection
-from .extractor import extract
+from .extraction.opendataloader import extract
 from .indexer import run_indexing
 from .retriever import search
 

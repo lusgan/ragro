@@ -1,7 +1,5 @@
 venv/
 .env
-data/MCR.md
-data/MCR_images
 reports/ragro.db
 qdrant_db/
 __pycache__/
