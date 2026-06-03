@@ -1,8 +1,9 @@
 venv/
 .env
-reports/ragro.db
+reports
 qdrant_db/
 __pycache__/
 *.pyc
 *.pyo
 .DS_Store
+data/MCR - docx
