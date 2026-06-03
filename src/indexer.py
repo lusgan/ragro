@@ -5,12 +5,12 @@ from pathlib import Path
 
 import voyageai
 from fastembed import SparseTextEmbedding
-from langchain.schema import Document
+from langchain_core.documents import Document
 from qdrant_client import QdrantClient
 from qdrant_client.models import PointStruct, SparseVector
 
 from .chunker import get_all_chunks
-from .config import ChunkStrategy, count_tokens, make_chunk_id
+from .config import count_tokens, make_chunk_id
 from .database import COLLECTION_NAME
 
 logger = logging.getLogger(__name__)
@@ -36,7 +36,7 @@ def _process_batch(
     points: list[PointStruct] = []
     for chunk, dense, sparse, tokens in zip(chunks, dense_vecs, sparse_vecs, token_counts):
         m        = chunk.metadata
-        chunk_id = make_chunk_id(m["titulo_num"], m["capitulo_num"], m["secao_num"], m["chunk_index"])
+        chunk_id = make_chunk_id(m["capitulo_num"], m["secao_num"], m["chunk_index"], 0)
         points.append(PointStruct(
             id=chunk_id,
             vector={
@@ -51,12 +51,10 @@ def _process_batch(
         chunk_stats_rows.append((
             chunk_id,
             tokens,
-            m["titulo_text"],
             m["capitulo_text"],
             m["secao_text"],
             m["chunk_index"],
             m["total_chunks"],
-            str(ChunkStrategy.FULL_SECTION_32K),
         ))
 
     client.upsert(collection_name=COLLECTION_NAME, points=points)
@@ -70,17 +68,15 @@ def _save_chunk_stats(rows: list[tuple]) -> None:
     cur = con.cursor()
     cur.execute("""
         CREATE TABLE IF NOT EXISTS chunk_stats (
-            id             INTEGER PRIMARY KEY,
-            tokens         INTEGER,
-            titulo         TEXT,
-            capitulo       TEXT,
-            secao          TEXT,
-            chunk_index    INTEGER,
-            total_chunks   INTEGER,
-            chunk_strategy TEXT
+            id           INTEGER PRIMARY KEY,
+            tokens       INTEGER,
+            capitulo     TEXT,
+            secao        TEXT,
+            chunk_index  INTEGER,
+            total_chunks INTEGER
         )
     """)
-    cur.executemany("INSERT OR REPLACE INTO chunk_stats VALUES (?,?,?,?,?,?,?,?)", rows)
+    cur.executemany("INSERT OR REPLACE INTO chunk_stats VALUES (?,?,?,?,?,?)", rows)
     con.commit()
     con.close()
     logger.info("chunk_stats persistido em '%s' (%d linhas).", DB_PATH, len(rows))
@@ -95,11 +91,10 @@ def run_indexing(client: QdrantClient) -> None:
     all_texts  = [c.page_content for c in all_chunks]
     logger.info("  %d chunks carregados.", len(all_chunks))
 
-    # ── PASSAGEM 2: Fit BM25 sobre corpus completo (IDF global) ──────────────
-    logger.info("Passagem 2 — ajustando IDF do BM25 sobre %d textos...", len(all_texts))
+    # ── PASSAGEM 2: Inicializar BM25 ──────────────────────────────────────────
+    logger.info("Passagem 2 — inicializando BM25...")
     bm25 = SparseTextEmbedding(model_name="Qdrant/bm25")
-    bm25.fit(all_texts)
-    logger.info("  IDF ajustado.")
+    logger.info("  BM25 pronto.")
 
     # ── PASSAGEM 3: Batching dinâmico → embed → upsert ───────────────────────
     logger.info(

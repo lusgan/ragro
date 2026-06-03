@@ -1,14 +1,13 @@
 # ragro
 
-RAG sobre o Manual de Crédito Rural (MCR).
+RAG sobre o Manual de Crédito Rural (MCR) com busca híbrida (dense + BM25 + RRF) via Voyage AI e Qdrant.
 
 ---
 
 ## Pré-requisitos
 
 - Python 3.11+
-- Java 11+ instalado e no `PATH`
-- terminal rodando como Administrador (necessário para symlinks do HuggingFace cache)
+- Chave de API [Voyage AI](https://www.voyageai.com/) (`VOYAGE_API_KEY`)
 
 ---
 
@@ -20,14 +19,19 @@ venv\Scripts\Activate.ps1
 pip install -r requirements.txt
 ```
 
-Copie o arquivo de variáveis de ambiente e preencha as chaves:
+Crie o arquivo `.env` na raiz do projeto:
 
-```powershell
-Copy-Item .env.example .env
-# Edite .env e preencha:
-#   VOYAGE_API_KEY=sua_chave
-#   ADOBE_CLIENT_ID=seu_client_id
-#   ADOBE_CLIENT_SECRET=seu_client_secret
+```env
+VOYAGE_API_KEY=sua_chave_voyage
+```
+
+Opcionalmente, adicione as credenciais dos extratores (necessárias apenas para re-extrair o MCR):
+
+```env
+AZURE_DOCUMENT_INTELLIGENCE_ENDPOINT=...
+AZURE_DOCUMENT_INTELLIGENCE_KEY=...
+ADOBE_CLIENT_ID=...
+ADOBE_CLIENT_SECRET=...
 ```
 
 ---
@@ -152,35 +156,86 @@ Para forçar re-extração: `Remove-Item data\MCR_adobe.json`.
 
 ## Pipeline RAG (indexação + busca)
 
-Após gerar `data/MCR.md` com o Extrator 1:
+Os arquivos `.docx` do MCR já estão em `data/MCR - docx/`. Basta executar:
 
 ```powershell
 python -m src.main
 ```
 
-Na primeira execução, o pipeline indexa o MCR.md no Qdrant. Nas execuções seguintes, vai direto
-para o loop de consulta.
+**Primeira execução:** lê os `.docx`, gera embeddings dense via `voyage-4-large` + sparse BM25, e indexa no Qdrant local (`qdrant_db/`). Em torno de 100 chunks, ~30 s.
+
+**Execuções seguintes:** a coleção já existe — vai direto para o loop de consulta.
+
+```
+=== RAG MCR — Busca Híbrida (Ctrl+C para sair) ===
+
+Query: Quem se encaixa no PRONAF?
+
+[1] Score: 0.8333
+    Cap. 10 — Programa Nacional de Fortalecimento da Agricultura Familiar (Pronaf)
+    Sec. 2 — Beneficiarios
+    ...
+```
+
+Para reindexar do zero:
+
+```powershell
+Remove-Item -Recurse -Force qdrant_db
+python -m src.main
+```
+
+---
+
+## Arquitetura do pipeline
+
+```
+data/MCR - docx/
+  └── 01 - MCR Normas/
+        └── NN - Capítulo/
+              └── N_-_Secao.docx
+          │
+          ▼
+    src/chunker.py          → LangChain Documents (1 doc/seção, split se > 28k tokens)
+          │
+          ▼
+    src/indexer.py
+      ├── voyage-4-large    → dense embeddings (1024-d, cosine)
+      └── Qdrant/bm25       → sparse embeddings
+          │
+          ▼
+    qdrant_db/              → coleção "mcr_knowledge_base" (Qdrant local)
+          │
+     (query time)
+          │
+    src/retriever.py
+      ├── voyage-4-lite     → dense query embedding
+      ├── Qdrant/bm25       → sparse query embedding
+      └── RRF Fusion        → top-5 resultados híbridos
+```
 
 ---
 
 ## Estrutura
 
 ```
-data/                    PDFs, Markdowns e JSONs (não versionados)
+data/
+  MCR - docx/            Arquivos .docx do MCR (fonte dos chunks)
+  MCR_images/            Imagens extraídas
 docs/                    Documentação técnica
-docs/proximos_passos/    Plano de evolução do pipeline
-reports/                 Banco SQLite com estatísticas de chunks
+reports/
+  ragro.db               SQLite com estatísticas de chunks (tokens/seção)
 src/
-  config.py              Configuração central, tokenizer, ChunkStrategy
-  chunker.py             Markdown → LangChain Documents
+  config.py              load_dotenv, tokenizer Voyage, make_chunk_id
+  chunker.py             .docx → LangChain Documents
   database.py            Qdrant client e inicialização da coleção
-  indexer.py             Embeddings (Voyage + BM25) e indexação
-  retriever.py           Busca híbrida RRF
+  indexer.py             Embeddings (voyage-4-large + BM25) e upsert
+  retriever.py           Busca híbrida RRF (voyage-4-lite + BM25)
   main.py                Orquestrador CLI
   extraction/
     opendataloader.py    PDF → Markdown (OpenDataLoader + docling)
     adobe_pdfservices.py PDF → Markdown (Adobe PDF Services)
     adobe_pdf_to_json.py PDF → JSON estruturado (Adobe Extract)
+    azure_di.py          PDF → Markdown (Azure Document Intelligence)
 qdrant_db/               Índice vetorial local (não versionado)
 ```
 
