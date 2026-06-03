@@ -7,3 +7,4 @@ fastembed
 transformers
 pypdf
 azure-ai-documentintelligence
+python-docx
