@@ -43,6 +43,7 @@ def search(
         query=FusionQuery(fusion=Fusion.RRF),
         limit=TOP_K,
         with_payload=True,
+        score_threshold=0.49
     )
 
     return results.points

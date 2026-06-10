@@ -3,7 +3,6 @@ import logging
 from enum import Enum
 
 from dotenv import load_dotenv
-from transformers import AutoTokenizer
 
 load_dotenv()
 
@@ -21,12 +20,25 @@ class ChunkStrategy(str, Enum):
     FIXED_4000       = "fixed_4000"
 
 
-# Tokenizer carregado uma vez no nível do módulo — local, sem chamada de API
-_tokenizer = AutoTokenizer.from_pretrained("voyageai/voyage-4-large")
+_tokenizer = None
+
+
+def _get_tokenizer():
+    global _tokenizer
+    if _tokenizer is None:
+        from transformers import AutoTokenizer
+        # local_files_only evita requisições ao HuggingFace após o primeiro download
+        try:
+            _tokenizer = AutoTokenizer.from_pretrained(
+                "voyageai/voyage-4-large", local_files_only=True
+            )
+        except Exception:
+            _tokenizer = AutoTokenizer.from_pretrained("voyageai/voyage-4-large")
+    return _tokenizer
 
 
 def count_tokens(text: str) -> int:
-    return len(_tokenizer.encode(text))
+    return len(_get_tokenizer().encode(text))
 
 
 def make_chunk_id(titulo_num: str, capitulo_num: str, secao_num: str, chunk_index: int) -> int:
