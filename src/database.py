@@ -1,4 +1,5 @@
 import logging
+import os
 
 from qdrant_client import QdrantClient
 from qdrant_client.models import (
@@ -11,11 +12,11 @@ from qdrant_client.models import (
 logger = logging.getLogger(__name__)
 
 COLLECTION_NAME = "mcr_knowledge_base"
-QDRANT_PATH     = "./qdrant_db"
+QDRANT_URL      = os.getenv("QDRANT_URL", "http://localhost:6333")
 
 
 def get_client() -> QdrantClient:
-    return QdrantClient(path=QDRANT_PATH)
+    return QdrantClient(url=QDRANT_URL)
 
 
 def init_collection(client: QdrantClient) -> None:

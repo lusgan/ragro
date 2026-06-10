@@ -27,6 +27,7 @@ Uso:
 
 import logging
 import re
+import sys
 from pathlib import Path
 
 from docx import Document as DocxDocument
@@ -93,6 +94,14 @@ def _is_header_paragraph(para) -> bool:
     return para.style.name.lower().startswith("header")
 
 
+def _win_path(path: Path) -> str:
+    """Aplica prefixo \\?\ no Windows para contornar o limite MAX_PATH de 260 chars."""
+    resolved = str(path.resolve())
+    if sys.platform == "win32" and len(resolved) > 260:
+        return "\\\\?\\" + resolved
+    return resolved
+
+
 def _extract_content(docx_path: Path) -> str:
     """
     Extrai o conteúdo textual de um .docx como string pronta para embedding.
@@ -102,7 +111,7 @@ def _extract_content(docx_path: Path) -> str:
     - Tabelas são serializadas como "chave: valor"
     - A ordem docx (parágrafos e tabelas intercalados) é preservada
     """
-    doc = DocxDocument(str(docx_path))
+    doc = DocxDocument(_win_path(docx_path))
     parts: list[str] = []
 
     # python-docx itera apenas parágrafos com doc.paragraphs e apenas tabelas
@@ -230,7 +239,7 @@ def get_all_chunks(docx_dir: str = "data/MCR - docx") -> list[Document]:
 
         # Ordenar seções por número
         sec_files = sorted(
-            [f for f in cap_folder.iterdir() if f.is_file() and f.suffix.lower() == ".docx"],
+            [f for f in cap_folder.iterdir() if f.suffix.lower() == ".docx" and Path(_win_path(f)).is_file()],
             key=lambda f: _parse_sec_file(f.stem)[0],
         )
 

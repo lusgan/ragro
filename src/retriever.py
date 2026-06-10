@@ -1,4 +1,5 @@
 import logging
+from enum import Enum
 
 import voyageai
 from fastembed import SparseTextEmbedding
@@ -11,22 +12,65 @@ logger = logging.getLogger(__name__)
 
 TOP_K = 5
 
+# Thresholds calibrados por escala de cada modo:
+#   dense  — cosseno normalizado [0, 1]
+#   sparse — BM25, escala livre (5–15+); sem threshold por padrão
+#   hybrid — RRF normalizado pelo Qdrant para [0, 1]
+SCORE_THRESHOLD: dict[str, float | None] = {
+    "dense":  0.4,
+    "sparse": None,
+    "hybrid": 0.4,
+}
+
+
+class SearchMode(str, Enum):
+    HYBRID = "hybrid"
+    DENSE  = "dense"
+    SPARSE = "sparse"
+
 
 def search(
     query_text: str,
     client: QdrantClient,
     bm25_model: SparseTextEmbedding,
+    mode: SearchMode = SearchMode.HYBRID,
 ) -> list:
-    vo = voyageai.Client()
+    vo        = voyageai.Client()
+    threshold = SCORE_THRESHOLD[mode.value]
 
-    # Dense query embedding — voyage-4-lite (mesmo espaço vetorial Voyage 4, menor custo)
+    if mode == SearchMode.SPARSE:
+        sparse_result = list(bm25_model.query_embed(query_text))
+        sparse_vec    = sparse_result[0]
+        results = client.query_points(
+            collection_name=COLLECTION_NAME,
+            query=SparseVector(
+                indices=sparse_vec.indices.tolist(),
+                values=sparse_vec.values.tolist(),
+            ),
+            using="sparse",
+            limit=TOP_K,
+            with_payload=True,
+            **({"score_threshold": threshold} if threshold is not None else {}),
+        )
+        return results.points
+
     dense_result = vo.embed([query_text], model="voyage-4-lite", input_type="query")
     dense_vec    = dense_result.embeddings[0]
 
-    # Sparse BM25 query embedding
+    if mode == SearchMode.DENSE:
+        results = client.query_points(
+            collection_name=COLLECTION_NAME,
+            query=dense_vec,
+            using="dense",
+            limit=TOP_K,
+            with_payload=True,
+            **({"score_threshold": threshold} if threshold is not None else {}),
+        )
+        return results.points
+
+    # HYBRID — RRF fusion
     sparse_result = list(bm25_model.query_embed(query_text))
     sparse_vec    = sparse_result[0]
-
     results = client.query_points(
         collection_name=COLLECTION_NAME,
         prefetch=[
@@ -43,7 +87,6 @@ def search(
         query=FusionQuery(fusion=Fusion.RRF),
         limit=TOP_K,
         with_payload=True,
-        score_threshold=0.49
+        **({"score_threshold": threshold} if threshold is not None else {}),
     )
-
     return results.points

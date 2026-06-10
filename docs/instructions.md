@@ -21,7 +21,7 @@ Este projeto consiste no desenvolvimento do pipeline de ingestão de dados (Data
   }
   ```
 * **RF05:** O sistema deve gerar embeddings densos com `voyage-4-large` (documentos) e `voyage-4-lite` (queries), ambos da série Voyage 4 — espaço vetorial compatível, dimensão 1024.
-* **RF06:** O sistema deve inicializar um banco de dados **Qdrant Local** persistido em `./qdrant_db`, coleção `mcr_knowledge_base` com dual vectors: dense (cosine, 1024-dim) + sparse BM25 (`Qdrant/bm25` via fastembed).
+* **RF06:** O sistema deve inicializar um banco de dados **Qdrant Server** acessível em `http://localhost:6333` (configurável via `QDRANT_URL`), com storage persistido em `./qdrant_db` via Docker volume, coleção `mcr_knowledge_base` com dual vectors: dense (cosine, 1024-dim) + sparse BM25 (`Qdrant/bm25` via fastembed).
 * **RF07:** O sistema deve armazenar embeddings densos, sparse BM25, metadados e texto no Qdrant via `PointStruct`.
 * **RF08:** O sistema deve fornecer busca híbrida com RRF (Reciprocal Rank Fusion) nativo do Qdrant, combinando dense cosine e sparse BM25 via `Prefetch` + `Query.fusion(Fusion.RRF)`, retornando Top-5 chunks.
 * **RF09:** O sistema deve persistir estatísticas de indexação em `reports/ragro.db` (SQLite), tabela `chunk_stats`, para análise e geração futura de gráficos.
@@ -45,7 +45,7 @@ Este projeto consiste no desenvolvimento do pipeline de ingestão de dados (Data
 | Embeddings (documentos) | Voyage AI `voyage-4-large` (1024-dim, 32K tokens ctx) |
 | Embeddings (queries) | Voyage AI `voyage-4-lite` (compatível com `voyage-4-large`) |
 | Sparse vectors | FastEmbed `Qdrant/bm25` |
-| Banco vetorial | Qdrant local (`qdrant-client[fastembed]`), `path="./qdrant_db"` |
+| Banco vetorial | Qdrant server (`qdrant-client[fastembed]`), `url="http://localhost:6333"`, storage em `./qdrant_db` via Docker volume |
 | Busca híbrida | RRF nativo do Qdrant (`Prefetch` + `Fusion.RRF`) |
 | Análise / relatórios | SQLite (`reports/ragro.db`), stdlib `sqlite3` |
 | Credenciais | `python-dotenv` |
@@ -75,9 +75,10 @@ Este projeto consiste no desenvolvimento do pipeline de ingestão de dados (Data
 2. Acumular conteúdo entre um cabeçalho de SEÇÃO e o próximo como um único chunk; criar um `Document` LangChain por SEÇÃO com os 7 campos de metadados.
 3. Todo chunk recebe `chunk_index` no metadata com a seguinte semântica: `chunk_index=0` = seção completa (não dividida); `chunk_index=1, 2, 3, …` = sub-chunks resultantes da divisão. Contar tokens via `voyageai.Client().tokenize()`. Se seção > **28.000 tokens**, aplicar `RecursiveCharacterTextSplitter(chunk_size=28000, chunk_overlap=200)` — sub-chunks começam no índice 1 e reiniciam a cada nova SEÇÃO.
 
-### Passo 4: Inicialização do Qdrant Local (`database.py`)
-1. Instanciar `QdrantClient(path="./qdrant_db")`.
-2. Criar coleção `mcr_knowledge_base` com:
+### Passo 4: Inicialização do Qdrant Server (`database.py`)
+1. Subir o servidor Qdrant via Docker: `docker run -d --name qdrant -p 6333:6333 -p 6334:6334 -v "${PWD}\qdrant_db:/qdrant/storage" qdrant/qdrant`
+2. Instanciar `QdrantClient(url=os.getenv("QDRANT_URL", "http://localhost:6333"))`.
+3. Criar coleção `mcr_knowledge_base` com:
    - Dense: `VectorParams(size=1024, distance=Distance.COSINE)`
    - Sparse: `SparseVectorParams()` nomeado `"sparse"` para BM25
 3. Se coleção já existir, não recriar (idempotente).

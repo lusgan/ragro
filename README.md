@@ -23,6 +23,7 @@ Crie o arquivo `.env` na raiz do projeto:
 
 ```env
 VOYAGE_API_KEY=sua_chave_voyage
+QDRANT_URL=http://localhost:6333
 ```
 
 Opcionalmente, adicione as credenciais dos extratores (necessárias apenas para re-extrair o MCR):
@@ -154,6 +155,27 @@ Para forçar re-extração: `Remove-Item data\MCR_adobe.json`.
 
 ---
 
+## Qdrant (servidor local)
+
+O projeto usa o Qdrant como servidor HTTP local em vez do modo embedded. É necessário tê-lo rodando antes de executar qualquer parte do pipeline.
+
+### Subir o Qdrant
+
+```bash
+docker compose up -d
+```
+
+Funciona em qualquer terminal (PowerShell, CMD, Git Bash). O volume `qdrant_db/` persiste os dados entre reinicializações. O dashboard web fica disponível em **http://localhost:6333/dashboard**.
+
+### Comandos úteis
+
+```bash
+docker compose down        # parar e remover o container (dados preservados)
+docker compose logs qdrant # ver logs do servidor
+```
+
+---
+
 ## Pipeline RAG (indexação + busca)
 
 Os arquivos `.docx` do MCR já estão em `data/MCR - docx/`. Basta executar:
@@ -162,7 +184,7 @@ Os arquivos `.docx` do MCR já estão em `data/MCR - docx/`. Basta executar:
 python -m src.main
 ```
 
-**Primeira execução:** lê os `.docx`, gera embeddings dense via `voyage-4-large` + sparse BM25, e indexa no Qdrant local (`qdrant_db/`). Em torno de 100 chunks, ~30 s.
+**Primeira execução:** lê os `.docx`, gera embeddings dense via `voyage-4-large` + sparse BM25, e indexa no Qdrant (`http://localhost:6333`). Em torno de 100 chunks, ~30 s.
 
 **Execuções seguintes:** a coleção já existe — vai direto para o loop de consulta.
 
@@ -179,8 +201,11 @@ Query: Quem se encaixa no PRONAF?
 
 Para reindexar do zero:
 
-```powershell
-Remove-Item -Recurse -Force qdrant_db
+```bash
+docker compose down
+Remove-Item -Recurse -Force qdrant_db   # PowerShell
+# rm -rf qdrant_db                      # Git Bash / Linux
+docker compose up -d
 python -m src.main
 ```
 
@@ -203,7 +228,7 @@ data/MCR - docx/
       └── Qdrant/bm25       → sparse embeddings
           │
           ▼
-    qdrant_db/              → coleção "mcr_knowledge_base" (Qdrant local)
+    Qdrant server           → coleção "mcr_knowledge_base" (http://localhost:6333)
           │
      (query time)
           │
@@ -236,6 +261,6 @@ src/
     adobe_pdfservices.py PDF → Markdown (Adobe PDF Services)
     adobe_pdf_to_json.py PDF → JSON estruturado (Adobe Extract)
     azure_di.py          PDF → Markdown (Azure Document Intelligence)
-qdrant_db/               Índice vetorial local (não versionado)
+qdrant_db/               Storage do Qdrant montado via Docker volume (não versionado)
 ```
 

@@ -5,9 +5,15 @@ from fastembed import SparseTextEmbedding
 from . import config  # noqa: F401 — aciona load_dotenv() e logging.basicConfig
 from .database import COLLECTION_NAME, get_client, init_collection
 from .indexer import run_indexing
-from .retriever import search
+from .retriever import SearchMode, search
 
 logger = logging.getLogger(__name__)
+
+_MODE_OPTIONS = {
+    "1": SearchMode.HYBRID,
+    "2": SearchMode.DENSE,
+    "3": SearchMode.SPARSE,
+}
 
 
 def _build_bm25() -> SparseTextEmbedding:
@@ -15,6 +21,18 @@ def _build_bm25() -> SparseTextEmbedding:
     bm25 = SparseTextEmbedding(model_name="Qdrant/bm25")
     logger.info("  BM25 pronto.")
     return bm25
+
+
+def _choose_mode() -> SearchMode:
+    print("\nModo de busca:")
+    print("  [1] Híbrida — dense + sparse (RRF)  (padrão)")
+    print("  [2] Dense   — só vetor semântico")
+    print("  [3] Sparse  — só BM25")
+    try:
+        choice = input("Escolha [1/2/3]: ").strip()
+    except (KeyboardInterrupt, EOFError):
+        return SearchMode.HYBRID
+    return _MODE_OPTIONS.get(choice, SearchMode.HYBRID)
 
 
 def main() -> None:
@@ -27,8 +45,10 @@ def main() -> None:
         run_indexing(client)
 
     bm25_model = _build_bm25()
+    mode       = _choose_mode()
 
-    print("\n=== RAG MCR — Busca Híbrida (Ctrl+C para sair) ===\n")
+    print(f"\n=== RAG MCR — Modo: {mode.value.upper()} (Ctrl+C para sair) ===")
+    print("  Digite :modo para alternar o modo de busca.\n")
     while True:
         try:
             query = input("Query: ").strip()
@@ -39,7 +59,12 @@ def main() -> None:
         if not query:
             continue
 
-        results = search(query, client, bm25_model)
+        if query == ":modo":
+            mode = _choose_mode()
+            print(f"  Modo alterado para: {mode.value.upper()}\n")
+            continue
+
+        results = search(query, client, bm25_model, mode=mode)
         if not results:
             print("  Nenhum resultado encontrado.\n")
             continue
