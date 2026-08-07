@@ -8,3 +8,5 @@ transformers
 pypdf
 azure-ai-documentintelligence
 python-docx
+streamlit
+google-genai
