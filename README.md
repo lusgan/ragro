@@ -247,13 +247,13 @@ data/
   MCR - docx/            Arquivos .docx do MCR (fonte dos chunks)
   MCR_images/            Imagens extraídas
 docs/                    Documentação técnica
-reports/
-  ragro.db               SQLite com estatísticas de chunks (tokens/seção)
 src/
   config.py              load_dotenv, tokenizer Voyage, make_chunk_id
   chunker.py             .docx → LangChain Documents
   database.py            Qdrant client e inicialização da coleção
-  indexer.py             Embeddings (voyage-4-large + BM25) e upsert
+  db.py                  Engine SQLAlchemy para o Postgres (Supabase)
+  auth.py                Login/cadastro (hash bcrypt, código de convite)
+  indexer.py             Embeddings (voyage-4-large + BM25), upsert e chunk_stats (Postgres)
   retriever.py           Busca híbrida RRF (voyage-4-lite + BM25)
   main.py                Orquestrador CLI
   extraction/

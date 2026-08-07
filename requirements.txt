@@ -10,3 +10,7 @@ azure-ai-documentintelligence
 python-docx
 streamlit
 google-genai
+sqlalchemy
+psycopg[binary]
+streamlit-authenticator
+bcrypt

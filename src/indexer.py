@@ -1,22 +1,21 @@
 import logging
-import sqlite3
 import statistics
-from pathlib import Path
 
 import voyageai
 from fastembed import SparseTextEmbedding
 from langchain_core.documents import Document
 from qdrant_client import QdrantClient
 from qdrant_client.models import PointStruct, SparseVector
+from sqlalchemy import text
 
 from .chunker import get_all_chunks
 from .config import count_tokens, make_chunk_id
 from .database import COLLECTION_NAME
+from .db import get_engine
 
 logger = logging.getLogger(__name__)
 
 BATCH_TOKEN_LIMIT = 118_000
-DB_PATH           = Path("reports/ragro.db")
 
 
 def _process_batch(
@@ -63,23 +62,29 @@ def _process_batch(
 
 
 def _save_chunk_stats(rows: list[tuple]) -> None:
-    DB_PATH.parent.mkdir(parents=True, exist_ok=True)
-    con = sqlite3.connect(DB_PATH)
-    cur = con.cursor()
-    cur.execute("""
-        CREATE TABLE IF NOT EXISTS chunk_stats (
-            id           INTEGER PRIMARY KEY,
-            tokens       INTEGER,
-            capitulo     TEXT,
-            secao        TEXT,
-            chunk_index  INTEGER,
-            total_chunks INTEGER
+    with get_engine().begin() as conn:
+        conn.execute(
+            text(
+                "INSERT INTO chunk_stats (id, tokens, capitulo, secao, chunk_index, total_chunks) "
+                "VALUES (:id, :tokens, :capitulo, :secao, :chunk_index, :total_chunks) "
+                "ON CONFLICT (id) DO UPDATE SET "
+                "tokens = EXCLUDED.tokens, capitulo = EXCLUDED.capitulo, "
+                "secao = EXCLUDED.secao, chunk_index = EXCLUDED.chunk_index, "
+                "total_chunks = EXCLUDED.total_chunks"
+            ),
+            [
+                {
+                    "id": row[0],
+                    "tokens": row[1],
+                    "capitulo": row[2],
+                    "secao": row[3],
+                    "chunk_index": row[4],
+                    "total_chunks": row[5],
+                }
+                for row in rows
+            ],
         )
-    """)
-    cur.executemany("INSERT OR REPLACE INTO chunk_stats VALUES (?,?,?,?,?,?)", rows)
-    con.commit()
-    con.close()
-    logger.info("chunk_stats persistido em '%s' (%d linhas).", DB_PATH, len(rows))
+    logger.info("chunk_stats persistido no Postgres (%d linhas).", len(rows))
 
 
 def run_indexing(client: QdrantClient) -> None:
