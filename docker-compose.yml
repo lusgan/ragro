@@ -8,3 +8,17 @@ services:
     volumes:
       - ./qdrant_db:/qdrant/storage
     restart: unless-stopped
+
+  # Banco descartável para `pytest` (tests/conftest.py). Não guarda volume de
+  # propósito: os testes truncam as tabelas e recriam o schema a cada sessão.
+  # Porta 5433 para não conflitar com um Postgres já instalado na máquina.
+  postgres-test:
+    image: postgres:16
+    container_name: ragro-postgres-test
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: ragro_test
+    ports:
+      - "5433:5432"
+    profiles: ["test"]

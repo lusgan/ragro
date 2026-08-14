@@ -1,0 +1,5 @@
+# Dependências só de desenvolvimento/teste. Separadas do requirements.txt
+# porque aquele é o que o Streamlit Community Cloud instala no deploy.
+-r requirements.txt
+
+pytest
