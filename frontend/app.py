@@ -7,13 +7,21 @@ sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
 import streamlit as st
 import streamlit_authenticator as stauth
-from fastembed import SparseTextEmbedding
 
-from src import chat_history, config  # noqa: F401 — config aciona load_dotenv() e logging.basicConfig
-from src.auth import AuthError, create_user, get_user_by_email, list_users_for_authenticator, touch_last_login
-from src.database import COLLECTION_NAME, get_client, init_collection
+from src import (  # noqa: F401 — config aciona load_dotenv() e logging.basicConfig
+    chat_history,
+    config,
+)
+from src.auth import (
+    AuthError,
+    create_user,
+    get_user_by_email,
+    list_users_for_authenticator,
+    touch_last_login,
+)
+from src.config import build_bm25
+from src.database import COLLECTION_NAME, get_client
 from src.generator import condense_query, generate_answer
-from src.indexer import run_indexing
 from src.retriever import SearchMode, search
 
 st.set_page_config(page_title="RAG MCR", page_icon="📖", layout="centered")
@@ -35,7 +43,7 @@ def get_qdrant_client():
 
 @st.cache_resource(show_spinner="Carregando modelo BM25...")
 def get_bm25_model():
-    return SparseTextEmbedding(model_name="Qdrant/bm25")
+    return build_bm25()
 
 
 def collection_exists(client) -> bool:
@@ -56,6 +64,7 @@ def snapshot_from_results(results: list) -> list[dict[str, Any]]:
             "capitulo_num": p.get("capitulo_num"),
             "capitulo_text": p.get("capitulo_text"),
             "secao_num": p.get("secao_num"),
+            "secao_label": p.get("secao_label"),
             "secao_text": p.get("secao_text"),
             "chunk_index": p.get("chunk_index"),
             "total_chunks": p.get("total_chunks"),
@@ -68,7 +77,8 @@ def render_chunk(i: int, chunk: dict[str, Any]) -> None:
     with st.container(border=True):
         st.markdown(f"**[{i}] Score: {chunk.get('score', 0):.4f}**")
         st.markdown(f"Cap. {chunk.get('capitulo_num', '?')} — {chunk.get('capitulo_text', '?')}")
-        st.markdown(f"Sec. {chunk.get('secao_num', '?')} — {chunk.get('secao_text', '?')}")
+        secao = chunk.get('secao_label') or chunk.get('secao_num', '?')
+        st.markdown(f"Sec. {secao} — {chunk.get('secao_text', '?')}")
         st.caption(f"Chunk {(chunk.get('chunk_index') or 0) + 1}/{chunk.get('total_chunks', 1)}")
 
         text = chunk.get("text", "")
@@ -277,17 +287,15 @@ def main() -> None:
         st.info("Verifique se o servidor está rodando: `docker compose up -d`")
         st.stop()
 
+    # A indexação é um passo offline: depende dos .docx do MCR, que não vão para
+    # o repositório. Aqui só consultamos — se a coleção não existe, é erro de
+    # configuração (QDRANT_URL apontando pro cluster errado) ou de operação.
     if not collection_exists(client):
-        st.warning(
+        st.error(
             f"Coleção '{COLLECTION_NAME}' não encontrada no Qdrant. "
-            "É necessário indexar os documentos antes de consultar."
+            "Rode a indexação localmente (`python -m src.main`, que indexa quando "
+            "a coleção não existe) apontando para este mesmo cluster."
         )
-        if st.button("Indexar agora"):
-            with st.spinner("Indexando documentos (pode levar alguns minutos)..."):
-                init_collection(client)
-                run_indexing(client)
-            st.success("Indexação concluída.")
-            st.rerun()
         st.stop()
 
     bm25_model = get_bm25_model()

@@ -31,7 +31,6 @@ import sys
 from pathlib import Path
 
 from docx import Document as DocxDocument
-from docx.oxml.ns import qn
 from langchain_core.documents import Document
 from langchain_text_splitters import RecursiveCharacterTextSplitter
 
@@ -95,7 +94,7 @@ def _is_header_paragraph(para) -> bool:
 
 
 def _win_path(path: Path) -> str:
-    """Aplica prefixo \\?\ no Windows para contornar o limite MAX_PATH de 260 chars."""
+    r"""Aplica prefixo \\?\ no Windows para contornar o limite MAX_PATH de 260 chars."""
     resolved = str(path.resolve())
     if sys.platform == "win32" and len(resolved) > 260:
         return "\\\\?\\" + resolved
@@ -144,7 +143,7 @@ def _extract_content(docx_path: Path) -> str:
 # ── Parsing de nomes de pasta/arquivo do MCR ─────────────────────────────────
 
 _RE_CAP_FOLDER = re.compile(r'^(\d+)\s*-\s*(.+)$')
-_RE_SEC_FILE   = re.compile(r'^(\d+)(?:-[A-Za-z])?_-_(.+)$')
+_RE_SEC_FILE   = re.compile(r'^(\d+)(-[A-Za-z])?_-_(.+)$')
 
 
 def _parse_cap_folder(name: str) -> tuple[int, str]:
@@ -155,16 +154,25 @@ def _parse_cap_folder(name: str) -> tuple[int, str]:
     return 0, name
 
 
-def _parse_sec_file(stem: str) -> tuple[int, str]:
+def _parse_sec_file(stem: str) -> tuple[int, str, str]:
     """
-    '1_-_Autorizacao_para_Operar...' → (1, 'Autorizacao para Operar...')
-    '4-A_-_Metodologia...'           → (4, 'Metodologia...')
-    '10_-_Normas_Transitorias'       → (10, 'Normas Transitorias')
+    Retorna (num, rótulo, título). O rótulo preserva o sufixo de letra.
+
+    '1_-_Autorizacao_para_Operar...' → (1,  '1',   'Autorizacao para Operar...')
+    '4_-_Metodologia_TCR...'         → (4,  '4',   'Metodologia TCR...')
+    '4-A_-_Metodologia_TRFC...'      → (4,  '4-A', 'Metodologia TRFC...')
+    '10_-_Normas_Transitorias'       → (10, '10',  'Normas Transitorias')
+
+    O número continua servindo para ordenação; o rótulo é o que identifica a
+    seção. Descartar o sufixo fazia 4 e 4-A colidirem no mesmo chunk_id, e a
+    4-A (TRFC) era sobrescrita silenciosamente no índice.
     """
     m = _RE_SEC_FILE.match(stem)
     if m:
-        return int(m.group(1)), m.group(2).replace('_', ' ').strip()
-    return 0, stem.replace('_', ' ')
+        num    = int(m.group(1))
+        sufixo = m.group(2) or ""
+        return num, f"{num}{sufixo.upper()}", m.group(3).replace('_', ' ').strip()
+    return 0, "0", stem.replace('_', ' ')
 
 
 # ── Construção de Documents ───────────────────────────────────────────────────
@@ -182,7 +190,7 @@ def _build_docs(content: str, meta: dict) -> list[Document]:
     n = len(sub_texts)
     logger.info(
         "Seção %s/%s dividida em %d sub-chunks (%d tokens).",
-        meta.get("capitulo_num"), meta.get("secao_num"), n, tokens,
+        meta.get("capitulo_num"), meta.get("secao_label"), n, tokens,
     )
     return [
         Document(
@@ -210,7 +218,7 @@ def get_all_chunks(docx_dir: str = "data/MCR - docx") -> list[Document]:
     Ignora capítulo 00 (Índice) e arquivos não-.docx.
 
     Retorna lista de Documents com metadata:
-        capitulo_num, capitulo_text, secao_num, secao_text,
+        capitulo_num, capitulo_text, secao_num, secao_label, secao_text,
         source, chunk_index, total_chunks
     """
     dir_path = Path(docx_dir)
@@ -240,17 +248,18 @@ def get_all_chunks(docx_dir: str = "data/MCR - docx") -> list[Document]:
         # Ordenar seções por número
         sec_files = sorted(
             [f for f in cap_folder.iterdir() if f.suffix.lower() == ".docx" and Path(_win_path(f)).is_file()],
-            key=lambda f: _parse_sec_file(f.stem)[0],
+            key=lambda f: _parse_sec_file(f.stem)[:2],
         )
 
         for docx_path in sec_files:
             total_files += 1
-            sec_num, sec_text = _parse_sec_file(docx_path.stem)
+            sec_num, sec_label, sec_text = _parse_sec_file(docx_path.stem)
 
             meta = {
                 "capitulo_num": cap_num,
                 "capitulo_text": cap_text,
                 "secao_num": sec_num,
+                "secao_label": sec_label,
                 "secao_text": sec_text,
                 "source": str(docx_path.relative_to(dir_path)).replace("\\", "/"),
             }
@@ -269,7 +278,7 @@ def get_all_chunks(docx_dir: str = "data/MCR - docx") -> list[Document]:
             documents.extend(docs)
             logger.info(
                 "Cap %s Sec %s → %d chunk(s) | %d tokens | %s",
-                cap_num, sec_num,
+                cap_num, sec_label,
                 len(docs), count_tokens(content), docx_path.name,
             )
 

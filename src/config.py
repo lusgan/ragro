@@ -107,6 +107,12 @@ def count_tokens(text: str) -> int:
     return len(_get_tokenizer().encode(text))
 
 
-def make_chunk_id(titulo_num: str, capitulo_num: str, secao_num: str, chunk_index: int) -> int:
-    key = f"{titulo_num}|{capitulo_num}|{secao_num}|{chunk_index}"
+def make_chunk_id(capitulo_num: int, secao_label: str, chunk_index: int) -> int:
+    """ID determinístico de um chunk a partir da sua posição no MCR.
+
+    secao_label é o rótulo, não o número: '4' e '4-A' são seções distintas do
+    Capítulo 2 e precisam de ids distintos. Usar o número inteiro fazia as duas
+    colidirem, e a 4-A (TRFC) sumia do índice no upsert.
+    """
+    key = f"{capitulo_num}|{secao_label}|{chunk_index}"
     return int(hashlib.sha256(key.encode()).hexdigest()[:16], 16) % (2**63)

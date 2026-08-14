@@ -35,7 +35,7 @@ def _process_batch(
     points: list[PointStruct] = []
     for chunk, dense, sparse, tokens in zip(chunks, dense_vecs, sparse_vecs, token_counts):
         m        = chunk.metadata
-        chunk_id = make_chunk_id(m["capitulo_num"], m["secao_num"], m["chunk_index"], 0)
+        chunk_id = make_chunk_id(m["capitulo_num"], m["secao_label"], m["chunk_index"])
         points.append(PointStruct(
             id=chunk_id,
             vector={

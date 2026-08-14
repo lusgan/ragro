@@ -12,7 +12,6 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
 import voyageai
-from fastembed import SparseTextEmbedding
 from qdrant_client.models import PointStruct, SparseVector
 
 from src import config  # noqa: F401
@@ -20,27 +19,28 @@ from src import config  # noqa: F401
 logging.getLogger("src.chunker").setLevel(logging.WARNING)
 
 from src.chunker import get_all_chunks
-from src.config import count_tokens, make_chunk_id
+from src.config import build_bm25, count_tokens, make_chunk_id
 from src.database import COLLECTION_NAME, get_client
 
 logger = logging.getLogger(__name__)
 
 
-def reindex_section(cap: int, sec: int) -> None:
+def reindex_section(cap: int, sec: str) -> None:
+    sec = sec.upper()
     all_chunks = get_all_chunks()
     targets = [
         c for c in all_chunks
-        if c.metadata.get("capitulo_num") == cap and c.metadata.get("secao_num") == sec
+        if c.metadata.get("capitulo_num") == cap and c.metadata.get("secao_label") == sec
     ]
 
     if not targets:
-        logger.error("Nenhum chunk encontrado para Cap %d Sec %d.", cap, sec)
+        logger.error("Nenhum chunk encontrado para Cap %d Sec %s.", cap, sec)
         sys.exit(1)
 
-    logger.info("Encontrados %d chunk(s) para Cap %d Sec %d.", len(targets), cap, sec)
+    logger.info("Encontrados %d chunk(s) para Cap %d Sec %s.", len(targets), cap, sec)
 
     vo    = voyageai.Client()
-    bm25  = SparseTextEmbedding(model_name="Qdrant/bm25")
+    bm25  = build_bm25()
     client = get_client()
 
     texts        = [c.page_content for c in targets]
@@ -54,9 +54,7 @@ def reindex_section(cap: int, sec: int) -> None:
     points = []
     for chunk, dense, sparse, tokens in zip(targets, dense_vecs, sparse_vecs, token_counts):
         m        = chunk.metadata
-        chunk_id = make_chunk_id(
-            str(m["capitulo_num"]), str(m["secao_num"]), str(m["chunk_index"]), 0
-        )
+        chunk_id = make_chunk_id(m["capitulo_num"], m["secao_label"], m["chunk_index"])
         points.append(PointStruct(
             id=chunk_id,
             vector={
@@ -70,12 +68,12 @@ def reindex_section(cap: int, sec: int) -> None:
         ))
 
     client.upsert(collection_name=COLLECTION_NAME, points=points)
-    logger.info("Cap %d Sec %d — %d chunk(s) indexado(s).", cap, sec, len(points))
+    logger.info("Cap %d Sec %s — %d chunk(s) indexado(s).", cap, sec, len(points))
 
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("--cap", type=int, required=True, help="Número do capítulo")
-    parser.add_argument("--sec", type=int, required=True, help="Número da seção")
+    parser.add_argument("--sec", required=True, help="Rótulo da seção, ex: 4 ou 4-A")
     args = parser.parse_args()
     reindex_section(args.cap, args.sec)

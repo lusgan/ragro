@@ -74,7 +74,7 @@ def main() -> None:
             p = point.payload
             print(f"\n[{i}] Score: {point.score:.4f}")
             print(f"    Cap. {p.get('capitulo_num', '?')} — {p.get('capitulo_text', '?')}")
-            print(f"    Sec. {p.get('secao_num', '?')} — {p.get('secao_text', '?')}")
+            print(f"    Sec. {p.get('secao_label') or p.get('secao_num', '?')} — {p.get('secao_text', '?')}")
             print(f"    Chunk {p.get('chunk_index', 0) + 1}/{p.get('total_chunks', 1)}")
             print(f"    {p.get('text', '')[:400]}...")
         print()

@@ -61,7 +61,8 @@ def _build_context(results: list) -> str:
     blocks = []
     for i, point in enumerate(results, 1):
         p = point.payload
-        header = f"[Trecho {i} — Cap. {p.get('capitulo_num', '?')} {p.get('capitulo_text', '?')}, Sec. {p.get('secao_num', '?')} {p.get('secao_text', '?')}]"
+        secao  = p.get('secao_label') or p.get('secao_num', '?')
+        header = f"[Trecho {i} — Cap. {p.get('capitulo_num', '?')} {p.get('capitulo_text', '?')}, Sec. {secao} {p.get('secao_text', '?')}]"
         blocks.append(f"{header}\n{p.get('text', '')}")
     return "\n\n".join(blocks)
 
