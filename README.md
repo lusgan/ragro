@@ -181,9 +181,13 @@ Necessário quando o app for hospedado fora da sua máquina (ex.: Streamlit Clou
 3. No `.env`, aponte para o cluster:
 
    ```env
-   QDRANT_URL=https://xxxxx.cloud.qdrant.io
+   QDRANT_URL=https://xxxxx.cloud.qdrant.io:443
    QDRANT_API_KEY=sua_api_key
    ```
+
+   A porta `:443` é explícita de propósito: sem ela o `qdrant-client` assume `6333`, que funciona
+   da sua máquina mas é bloqueada na saída de rede de hosts como o Streamlit Cloud. O cluster
+   atende REST nas duas portas.
 
 4. Reindexe do zero apontando pro cluster novo (o volume `qdrant_db/` local não é usado nesse modo):
 

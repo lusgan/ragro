@@ -55,7 +55,7 @@ Passos:
 
    ```toml
    VOYAGE_API_KEY = "..."
-   QDRANT_URL = "https://xxxxx.cloud.qdrant.io"
+   QDRANT_URL = "https://xxxxx.cloud.qdrant.io:443"
    QDRANT_API_KEY = "..."
    DATABASE_URL = "postgresql+psycopg://postgres:...@...:5432/postgres"
    AUTH_COOKIE_KEY = "..."
@@ -67,6 +67,11 @@ Passos:
    O Streamlit expõe cada chave de `secrets.toml` também via `os.environ`/`os.getenv`
    automaticamente, então nenhum código muda — é o mesmo `os.environ[...]` usado localmente com
    `.env`.
+
+   A porta `:443` na `QDRANT_URL` não é opcional aqui: sem porta explícita o `qdrant-client`
+   assume `6333`, e a saída de rede do Streamlit Cloud bloqueia portas não-padrão — a conexão
+   morre em `ResponseHandlingException` (erro de transporte, sem resposta HTTP). O Qdrant Cloud
+   atende REST nas duas portas, então `:443` funciona igual localmente.
 6. Deploy. O primeiro acesso é mais lento: o `fastembed` baixa o modelo `Qdrant/bm25` do
    HuggingFace na primeira chamada ao BM25 e o resultado fica em `st.cache_resource`.
 
