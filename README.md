@@ -155,11 +155,11 @@ Para forçar re-extração: `Remove-Item data\MCR_adobe.json`.
 
 ---
 
-## Qdrant (servidor local)
+## Qdrant
 
-O projeto usa o Qdrant como servidor HTTP local em vez do modo embedded. É necessário tê-lo rodando antes de executar qualquer parte do pipeline.
+O projeto usa o Qdrant como servidor HTTP (nunca modo embedded), local via Docker ou gerenciado no Qdrant Cloud. É necessário tê-lo acessível antes de executar qualquer parte do pipeline.
 
-### Subir o Qdrant
+### Opção A — Servidor local (Docker)
 
 ```bash
 docker compose up -d
@@ -167,12 +167,33 @@ docker compose up -d
 
 Funciona em qualquer terminal (PowerShell, CMD, Git Bash). O volume `qdrant_db/` persiste os dados entre reinicializações. O dashboard web fica disponível em **http://localhost:6333/dashboard**.
 
-### Comandos úteis
-
 ```bash
 docker compose down        # parar e remover o container (dados preservados)
 docker compose logs qdrant # ver logs do servidor
 ```
+
+### Opção B — Qdrant Cloud (gerenciado)
+
+Necessário quando o app for hospedado fora da sua máquina (ex.: Streamlit Cloud), já que nesse caso não há como o serviço acessar `localhost:6333`.
+
+1. Crie uma conta em [cloud.qdrant.io](https://cloud.qdrant.io) e um cluster gratuito (free tier: 1 GB, suficiente para o volume atual do projeto).
+2. No dashboard do cluster, copie a **Cluster URL** (formato `https://xxxxx.cloud.qdrant.io`) e gere uma **API Key**.
+3. No `.env`, aponte para o cluster:
+
+   ```env
+   QDRANT_URL=https://xxxxx.cloud.qdrant.io
+   QDRANT_API_KEY=sua_api_key
+   ```
+
+4. Reindexe do zero apontando pro cluster novo (o volume `qdrant_db/` local não é usado nesse modo):
+
+   ```powershell
+   python -m src.main
+   ```
+
+   Isso recria a coleção `mcr_knowledge_base` no cluster e reprocessa os ~100 chunks (poucos segundos, custo de API Voyage desprezível nesse volume).
+
+Para voltar a usar o servidor local, basta reverter `QDRANT_URL` para `http://localhost:6333` e limpar `QDRANT_API_KEY`.
 
 ---
 

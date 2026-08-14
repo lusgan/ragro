@@ -1,0 +1,32 @@
+# Dependências APENAS do app Streamlit (login + chat + retrieval).
+# A ingestão/indexação (chunker, extratores, indexer) NÃO roda em produção —
+# suas dependências pesadas (opendataloader-pdf[hybrid], azure, langchain,
+# python-docx, transformers) ficam só no requirements.txt da raiz.
+#
+# Versões pinadas: este arquivo é resolvido no build do Streamlit Cloud, sem
+# lockfile e sem ninguém olhando. Um major novo entrando sozinho quebra o app
+# em produção, não na máquina de quem desenvolve.
+
+streamlit==1.61.1
+# 0.4.x mudou a assinatura de Authenticate() (`key` -> `cookie_key`); um
+# downgrade acidental para 0.3.x derruba o login no import.
+streamlit-authenticator==0.4.2
+
+qdrant-client[fastembed]==1.18.0
+# Mesmo pin do requirements.txt da raiz, e pela mesma razão: src/config.py
+# sobrescreve Bm25._stem e Bm25._load_stopwords, que são privados. Se a busca
+# rodar num fastembed diferente do que indexou, a normalização de acento/
+# stopwords diverge e o BM25 passa a errar em silêncio.
+fastembed==0.8.0
+voyageai==0.4.1
+
+python-dotenv==1.2.2
+
+# Vertex AI — google-auth vem como dependência transitiva do google-genai, mas
+# src/generator.py importa google.oauth2 direto; declarado para não depender disso.
+google-genai==2.17.0
+google-auth==2.56.3
+
+sqlalchemy==2.0.51
+psycopg[binary]==3.3.4
+bcrypt==5.0.0
