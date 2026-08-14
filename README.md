@@ -2,16 +2,13 @@
 
 RAG sobre o Manual de Crédito Rural (MCR) com busca híbrida (dense + BM25 + RRF) via Voyage AI e Qdrant.
 
----
-
-## Pré-requisitos
-
-- Python 3.11+
-- Chave de API [Voyage AI](https://www.voyageai.com/) (`VOYAGE_API_KEY`)
+Para a interface web e o deploy, veja [frontend/README.md](frontend/README.md).
 
 ---
 
 ## Instalação
+
+Requer Python 3.11+ e uma chave [Voyage AI](https://www.voyageai.com/).
 
 ```powershell
 python -m venv venv
@@ -19,224 +16,75 @@ venv\Scripts\Activate.ps1
 pip install -r requirements.txt
 ```
 
-Crie o arquivo `.env` na raiz do projeto:
+`.env` na raiz:
 
 ```env
 VOYAGE_API_KEY=sua_chave_voyage
 QDRANT_URL=http://localhost:6333
 ```
 
-Opcionalmente, adicione as credenciais dos extratores (necessárias apenas para re-extrair o MCR):
-
-```env
-AZURE_DOCUMENT_INTELLIGENCE_ENDPOINT=...
-AZURE_DOCUMENT_INTELLIGENCE_KEY=...
-ADOBE_CLIENT_ID=...
-ADOBE_CLIENT_SECRET=...
-```
-
----
-
-## Ferramentas de Extração
-
-O projeto disponibiliza três extratores, cada um gerando um artefato diferente a partir do `data/MCR.pdf`.
-
----
-
-### Extrator 1 — OpenDataLoader (PDF → Markdown)
-
-**Arquivo:** `src/extraction/opendataloader.py`  
-**Saída:** `data/MCR.md`  
-**Dependências extras:** servidor `docling-fast` em execução (veja abaixo)
-
-#### Passo a passo
-
-**1. Abrir terminal como Administrador (ou ativar Modo Desenvolvedor)**
-
-> Necessário para que o servidor `docling-fast` crie symlinks no cache de modelos.  
-> Alternativa sem admin: `Configurações → Sistema → Para Desenvolvedores → Modo Desenvolvedor → Ativar`.
-
-**2. Ativar o ambiente virtual**
-
-```powershell
-.\venv\Scripts\Activate.ps1
-```
-
-**3. Subir o servidor hybrid (terminal separado)**
-
-Abra um **segundo terminal** (com o venv ativado) e execute:
-
-```powershell
-opendataloader-pdf-hybrid --port 5002
-```
-
-Aguarde a mensagem indicando que o servidor está pronto. Mantenha este terminal aberto.
-
-> O servidor aplica OCR neural (`docling-fast`) nas páginas com fontes CID sem mapeamento Unicode.
-> Fallback automático para Java garante que o arquivo seja gerado mesmo em caso de falta de RAM.
-> Consulte [docs/extractor.md](docs/extractor.md) para detalhes.
-
-**4. Executar a extração**
-
-No terminal principal:
-
-```powershell
-python -m src.extraction.opendataloader
-```
-
-O arquivo `data/MCR.md` será gerado. A extração é **idempotente** — rodar novamente não reprocessa.  
-Para forçar re-extração: `Remove-Item data\MCR.md`.
-
----
-
-### Extrator 2 — Adobe PDF to Markdown
-
-**Arquivo:** `src/extraction/adobe_pdfservices.py`  
-**Saída:** `data/MCR_adobe.md`  
-**Dependências extras:** credenciais Adobe no `.env`
-
-#### Passo a passo
-
-**1. Ativar o ambiente virtual**
-
-```powershell
-.\venv\Scripts\Activate.ps1
-```
-
-**2. Executar a extração**
-
-```powershell
-python -m src.extraction.adobe_pdfservices
-```
-
-O arquivo `data/MCR_adobe.md` será gerado via Adobe PDF Services API (operação `pdftomarkdown`).
-A extração é **idempotente**.  
-Para forçar re-extração: `Remove-Item data\MCR_adobe.md`.
-
----
-
-### Extrator 3 — Adobe PDF to JSON (Estruturado)
-
-**Arquivo:** `src/extraction/adobe_pdf_to_json.py`  
-**Saída:** `data/MCR_adobe.json`  
-**Dependências extras:** credenciais Adobe no `.env`
-
-Utiliza a operação `extractpdf` da Adobe PDF Services API para extrair o conteúdo do PDF em JSON
-estruturado, com elementos tipados (H1–H6, P, LI, Table/TR/TH/TD, Header, Footer), número de
-página e bounding box de cada elemento.
-
-#### Estrutura do JSON gerado
-
-| Chave          | Descrição                                                                 |
-|----------------|---------------------------------------------------------------------------|
-| `elements`     | Array com ~39 000 itens: parágrafos, títulos, células de tabela, etc.     |
-| `artifacts`    | Array com ~1 700 itens: cabeçalhos e rodapés de página                    |
-| `pages`        | Metadados de cada página (dimensões, número)                              |
-| `version`      | Versão do schema Adobe Extract                                            |
-
-Cada elemento possui os campos `Path` (tipo/posição XPath-like), `Page`, `Text`, `Bounds` e `Font`.
-
-#### Passo a passo
-
-**1. Ativar o ambiente virtual**
-
-```powershell
-.\venv\Scripts\Activate.ps1
-```
-
-**2. Executar a extração**
-
-```powershell
-python -m src.extraction.adobe_pdf_to_json
-```
-
-O arquivo `data/MCR_adobe.json` será gerado (~24 MB). A extração é **idempotente**.  
-Para forçar re-extração: `Remove-Item data\MCR_adobe.json`.
+Credenciais dos extratores (`ADOBE_CLIENT_ID`, `ADOBE_CLIENT_SECRET`,
+`AZURE_DOCUMENT_INTELLIGENCE_ENDPOINT`, `AZURE_DOCUMENT_INTELLIGENCE_KEY`) só são
+necessárias para re-extrair o MCR do PDF.
 
 ---
 
 ## Qdrant
 
-O projeto usa o Qdrant como servidor HTTP (nunca modo embedded), local via Docker ou gerenciado no Qdrant Cloud. É necessário tê-lo acessível antes de executar qualquer parte do pipeline.
+Sempre como servidor HTTP, nunca embedded. Precisa estar acessível antes de qualquer
+parte do pipeline.
 
-### Opção A — Servidor local (Docker)
-
-```bash
-docker compose up -d
-```
-
-Funciona em qualquer terminal (PowerShell, CMD, Git Bash). O volume `qdrant_db/` persiste os dados entre reinicializações. O dashboard web fica disponível em **http://localhost:6333/dashboard**.
+### Local (Docker)
 
 ```bash
-docker compose down        # parar e remover o container (dados preservados)
-docker compose logs qdrant # ver logs do servidor
+docker compose up -d          # dashboard em http://localhost:6333/dashboard
+docker compose down           # para o container; o volume qdrant_db/ preserva os dados
 ```
 
-### Opção B — Qdrant Cloud (gerenciado)
+### Qdrant Cloud
 
-Necessário quando o app for hospedado fora da sua máquina (ex.: Streamlit Cloud), já que nesse caso não há como o serviço acessar `localhost:6333`.
+Necessário quando o app roda fora da sua máquina (ex.: Streamlit Cloud), que não alcança
+`localhost:6333`. Crie um cluster em [cloud.qdrant.io](https://cloud.qdrant.io) (o free tier
+de 1 GB acomoda o projeto), copie a Cluster URL e gere uma API Key:
 
-1. Crie uma conta em [cloud.qdrant.io](https://cloud.qdrant.io) e um cluster gratuito (free tier: 1 GB, suficiente para o volume atual do projeto).
-2. No dashboard do cluster, copie a **Cluster URL** (formato `https://xxxxx.cloud.qdrant.io`) e gere uma **API Key**.
-3. No `.env`, aponte para o cluster:
+```env
+QDRANT_URL=https://xxxxx.cloud.qdrant.io:443
+QDRANT_API_KEY=sua_api_key
+```
 
-   ```env
-   QDRANT_URL=https://xxxxx.cloud.qdrant.io:443
-   QDRANT_API_KEY=sua_api_key
-   ```
+> A porta `:443` é explícita de propósito: sem ela o `qdrant-client` assume `6333`, que
+> funciona da sua máquina mas é bloqueada na saída de rede de hosts como o Streamlit Cloud.
+> O cluster atende REST nas duas portas.
 
-   A porta `:443` é explícita de propósito: sem ela o `qdrant-client` assume `6333`, que funciona
-   da sua máquina mas é bloqueada na saída de rede de hosts como o Streamlit Cloud. O cluster
-   atende REST nas duas portas.
-
-4. Reindexe do zero apontando pro cluster novo (o volume `qdrant_db/` local não é usado nesse modo):
-
-   ```powershell
-   python -m src.main
-   ```
-
-   Isso recria a coleção `mcr_knowledge_base` no cluster e reprocessa os ~100 chunks (poucos segundos, custo de API Voyage desprezível nesse volume).
-
-Para voltar a usar o servidor local, basta reverter `QDRANT_URL` para `http://localhost:6333` e limpar `QDRANT_API_KEY`.
+Depois reindexe apontando para o cluster com `python -m src.main` — o volume local não é
+usado nesse modo. Para voltar ao servidor local, reverta `QDRANT_URL` e limpe a API key.
 
 ---
 
-## Pipeline RAG (indexação + busca)
+## Pipeline RAG
 
-Os arquivos `.docx` do MCR já estão em `data/MCR - docx/`. Basta executar:
+Os `.docx` do MCR já estão em `data/MCR - docx/`:
 
 ```powershell
 python -m src.main
 ```
 
-**Primeira execução:** lê os `.docx`, gera embeddings dense via `voyage-4-large` + sparse BM25, e indexa no Qdrant (`http://localhost:6333`). Em torno de 100 chunks, ~30 s.
-
-**Execuções seguintes:** a coleção já existe — vai direto para o loop de consulta.
+Na primeira execução lê os `.docx`, gera embeddings dense (`voyage-4-large`) + sparse (BM25)
+e indexa no Qdrant — ~100 chunks, cerca de 30 s. Nas seguintes a coleção já existe e vai
+direto para o loop de consulta:
 
 ```
-=== RAG MCR — Busca Híbrida (Ctrl+C para sair) ===
-
 Query: Quem se encaixa no PRONAF?
 
 [1] Score: 0.8333
     Cap. 10 — Programa Nacional de Fortalecimento da Agricultura Familiar (Pronaf)
     Sec. 2 — Beneficiarios
-    ...
 ```
 
-Para reindexar do zero:
+Para reindexar do zero, remova `qdrant_db/` com o container parado e rode `python -m src.main`
+novamente.
 
-```bash
-docker compose down
-Remove-Item -Recurse -Force qdrant_db   # PowerShell
-# rm -rf qdrant_db                      # Git Bash / Linux
-docker compose up -d
-python -m src.main
-```
-
----
-
-## Arquitetura do pipeline
+### Arquitetura
 
 ```
 data/MCR - docx/
@@ -253,7 +101,7 @@ data/MCR - docx/
       └── Qdrant/bm25       → sparse embeddings
           │
           ▼
-    Qdrant server           → coleção "mcr_knowledge_base" (http://localhost:6333)
+    Qdrant server           → coleção "mcr_knowledge_base"
           │
      (query time)
           │
@@ -265,12 +113,59 @@ data/MCR - docx/
 
 ---
 
+## Extração do PDF
+
+Três extratores independentes geram artefatos a partir de `data/MCR.pdf`. Nenhum é necessário
+para rodar o pipeline (os `.docx` já estão versionados). Todos são idempotentes — apague a
+saída para forçar a re-extração.
+
+| Módulo (`python -m ...`)              | Saída                  | Requer                        |
+|---------------------------------------|------------------------|-------------------------------|
+| `src.extraction.opendataloader`       | `data/MCR.md`          | servidor `docling-fast` (ver abaixo) |
+| `src.extraction.adobe_pdfservices`    | `data/MCR_adobe.md`    | credenciais Adobe             |
+| `src.extraction.adobe_pdf_to_json`    | `data/MCR_adobe.json`  | credenciais Adobe             |
+
+O OpenDataLoader precisa do servidor hybrid num terminal separado, com o venv ativado:
+
+```powershell
+opendataloader-pdf-hybrid --port 5002
+```
+
+Ele aplica OCR neural nas páginas com fontes CID sem mapeamento Unicode, e exige terminal
+como Administrador (ou Modo Desenvolvedor ativo) para criar symlinks no cache de modelos.
+Detalhes e o fallback para Java em [docs/extractor.md](docs/extractor.md).
+
+O `adobe_pdf_to_json` produz JSON estruturado (~24 MB) com elementos tipados (H1–H6, P, LI,
+Table/TR/TH/TD, Header, Footer), cada um com `Path`, `Page`, `Text`, `Bounds` e `Font`.
+
+---
+
+## Testes
+
+Cobrem o isolamento entre usuários: ninguém lê nem escreve na conversa de outro, mesmo de
+posse do `conversation_id`.
+
+```bash
+pip install -r requirements-dev.txt
+docker compose up -d postgres-test
+
+TEST_DATABASE_URL=postgresql+psycopg://postgres:postgres@localhost:5433/ragro_test pytest
+```
+
+Use o Postgres descartável do compose, **nunca** o Supabase: os testes truncam as tabelas.
+Sem `TEST_DATABASE_URL` os testes de banco são pulados e só os de `session_state` rodam.
+
+`tests/schema.sql` é uma **réplica** do schema do Supabase, que foi criado à mão e não é
+versionado — ao alterar as tabelas lá, atualize esse arquivo, senão os testes validam um
+schema obsoleto.
+
+---
+
 ## Estrutura
 
 ```
 data/
   MCR - docx/            Arquivos .docx do MCR (fonte dos chunks)
-  MCR_images/            Imagens extraídas
 docs/                    Documentação técnica
 src/
   config.py              load_dotenv, tokenizer Voyage, make_chunk_id
@@ -278,14 +173,12 @@ src/
   database.py            Qdrant client e inicialização da coleção
   db.py                  Engine SQLAlchemy para o Postgres (Supabase)
   auth.py                Login/cadastro (hash bcrypt, código de convite)
-  indexer.py             Embeddings (voyage-4-large + BM25), upsert e chunk_stats (Postgres)
-  retriever.py           Busca híbrida RRF (voyage-4-lite + BM25)
+  chat_history.py        Conversas e mensagens, escopadas por user_id
+  indexer.py             Embeddings, upsert e chunk_stats
+  retriever.py           Busca híbrida RRF
   main.py                Orquestrador CLI
-  extraction/
-    opendataloader.py    PDF → Markdown (OpenDataLoader + docling)
-    adobe_pdfservices.py PDF → Markdown (Adobe PDF Services)
-    adobe_pdf_to_json.py PDF → JSON estruturado (Adobe Extract)
-    azure_di.py          PDF → Markdown (Azure Document Intelligence)
-qdrant_db/               Storage do Qdrant montado via Docker volume (não versionado)
+  extraction/            Extratores PDF (OpenDataLoader, Adobe, Azure)
+frontend/app.py          Interface Streamlit
+tests/                   Isolamento entre usuários (camada de dados e sessão)
+qdrant_db/               Storage do Qdrant via Docker volume (não versionado)
 ```
-
