@@ -20,7 +20,7 @@ from src.auth import (
     touch_last_login,
 )
 from src.config import build_bm25
-from src.database import COLLECTION_NAME, get_client
+from src.database import COLLECTION_NAME, QDRANT_URL, get_client
 from src.generator import condense_query, generate_answer
 from src.retriever import SearchMode, search
 
@@ -280,17 +280,24 @@ def main() -> None:
 
     user = require_login()
 
+    # QdrantClient() não abre conexão no construtor: a falha de rede só aparece
+    # na primeira requisição, então a checagem da coleção precisa estar dentro
+    # do try — senão o erro sobe como traceback cru em vez desta mensagem.
     try:
         client = get_qdrant_client()
+        has_collection = collection_exists(client)
     except Exception as e:
-        st.error(f"Não foi possível conectar ao Qdrant: {e}")
-        st.info("Verifique se o servidor está rodando: `docker compose up -d`")
+        st.error(f"Não foi possível conectar ao Qdrant ({type(e).__name__}): {e}")
+        st.info(
+            f"URL configurada: `{QDRANT_URL}`. Local: `docker compose up -d`. "
+            "Qdrant Cloud: a URL precisa incluir a porta (`:443`)."
+        )
         st.stop()
 
     # A indexação é um passo offline: depende dos .docx do MCR, que não vão para
     # o repositório. Aqui só consultamos — se a coleção não existe, é erro de
     # configuração (QDRANT_URL apontando pro cluster errado) ou de operação.
-    if not collection_exists(client):
+    if not has_collection:
         st.error(
             f"Coleção '{COLLECTION_NAME}' não encontrada no Qdrant. "
             "Rode a indexação localmente (`python -m src.main`, que indexa quando "

@@ -15,10 +15,13 @@ logger = logging.getLogger(__name__)
 COLLECTION_NAME = "mcr_knowledge_base"
 QDRANT_URL      = os.getenv("QDRANT_URL", "http://localhost:6333")
 QDRANT_API_KEY  = os.getenv("QDRANT_API_KEY")
+# O httpx assume 5s quando o timeout não é passado, e isso derruba a primeira
+# chamada num cluster gerenciado frio (cold start + latência entre regiões).
+QDRANT_TIMEOUT  = int(os.getenv("QDRANT_TIMEOUT", "30"))
 
 
 def get_client() -> QdrantClient:
-    return QdrantClient(url=QDRANT_URL, api_key=QDRANT_API_KEY)
+    return QdrantClient(url=QDRANT_URL, api_key=QDRANT_API_KEY, timeout=QDRANT_TIMEOUT)
 
 
 def init_collection(client: QdrantClient) -> None:
