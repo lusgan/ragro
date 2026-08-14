@@ -1,8 +1,9 @@
 import logging
 
-from fastembed import SparseTextEmbedding
+from fastembed.sparse.sparse_embedding_base import SparseTextEmbeddingBase
 
 from . import config  # noqa: F401 — aciona load_dotenv() e logging.basicConfig
+from .config import build_bm25
 from .database import COLLECTION_NAME, get_client, init_collection
 from .indexer import run_indexing
 from .retriever import SearchMode, search
@@ -16,9 +17,9 @@ _MODE_OPTIONS = {
 }
 
 
-def _build_bm25() -> SparseTextEmbedding:
+def _build_bm25() -> SparseTextEmbeddingBase:
     logger.info("Carregando BM25 para retrieval...")
-    bm25 = SparseTextEmbedding(model_name="Qdrant/bm25")
+    bm25 = build_bm25()
     logger.info("  BM25 pronto.")
     return bm25
 

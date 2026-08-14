@@ -2,7 +2,7 @@ import logging
 from enum import Enum
 
 import voyageai
-from fastembed import SparseTextEmbedding
+from fastembed.sparse.sparse_embedding_base import SparseTextEmbeddingBase
 from qdrant_client import QdrantClient
 from qdrant_client.models import Fusion, FusionQuery, Prefetch, SparseVector
 
@@ -14,7 +14,7 @@ TOP_K = 5
 
 # Thresholds calibrados por escala de cada modo:
 #   dense  — cosseno normalizado [0, 1]
-#   sparse — BM25, escala livre (5–15+); sem threshold por padrão
+#   sparse — BM25 com IDF, escala livre e dependente do corpus; sem threshold
 #   hybrid — RRF normalizado pelo Qdrant para [0, 1]
 SCORE_THRESHOLD: dict[str, float | None] = {
     "dense":  0.4,
@@ -32,7 +32,7 @@ class SearchMode(str, Enum):
 def search(
     query_text: str,
     client: QdrantClient,
-    bm25_model: SparseTextEmbedding,
+    bm25_model: SparseTextEmbeddingBase,
     mode: SearchMode = SearchMode.HYBRID,
 ) -> list:
     vo        = voyageai.Client()

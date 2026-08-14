@@ -2,14 +2,14 @@ import logging
 import statistics
 
 import voyageai
-from fastembed import SparseTextEmbedding
+from fastembed.sparse.sparse_embedding_base import SparseTextEmbeddingBase
 from langchain_core.documents import Document
 from qdrant_client import QdrantClient
 from qdrant_client.models import PointStruct, SparseVector
 from sqlalchemy import text
 
 from .chunker import get_all_chunks
-from .config import count_tokens, make_chunk_id
+from .config import build_bm25, count_tokens, make_chunk_id
 from .database import COLLECTION_NAME
 from .db import get_engine
 
@@ -21,7 +21,7 @@ BATCH_TOKEN_LIMIT = 118_000
 def _process_batch(
     client: QdrantClient,
     vo: voyageai.Client,
-    bm25: SparseTextEmbedding,
+    bm25: SparseTextEmbeddingBase,
     chunks: list[Document],
     texts: list[str],
     token_counts: list[int],
@@ -93,12 +93,11 @@ def run_indexing(client: QdrantClient) -> None:
     # ── PASSAGEM 1: Materializar corpus completo ──────────────────────────────
     logger.info("Passagem 1 — carregando todos os chunks...")
     all_chunks = get_all_chunks()
-    all_texts  = [c.page_content for c in all_chunks]
     logger.info("  %d chunks carregados.", len(all_chunks))
 
     # ── PASSAGEM 2: Inicializar BM25 ──────────────────────────────────────────
     logger.info("Passagem 2 — inicializando BM25...")
-    bm25 = SparseTextEmbedding(model_name="Qdrant/bm25")
+    bm25 = build_bm25()
     logger.info("  BM25 pronto.")
 
     # ── PASSAGEM 3: Batching dinâmico → embed → upsert ───────────────────────

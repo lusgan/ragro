@@ -1,8 +1,12 @@
 import hashlib
 import logging
+import unicodedata
 from enum import Enum
+from pathlib import Path
 
 from dotenv import load_dotenv
+from fastembed.sparse.bm25 import Bm25
+from fastembed.sparse.sparse_embedding_base import SparseTextEmbeddingBase
 
 load_dotenv()
 
@@ -13,6 +17,66 @@ logging.basicConfig(
 )
 logging.getLogger("httpx").setLevel(logging.WARNING)
 logging.getLogger("httpcore").setLevel(logging.WARNING)
+
+
+BM25_MODEL    = "Qdrant/bm25"
+BM25_LANGUAGE = "portuguese"
+
+
+def strip_accents(token: str) -> str:
+    """Remove diacríticos: 'crédito' -> 'credito', 'condição' -> 'condicao'."""
+    return "".join(
+        c for c in unicodedata.normalize("NFD", token) if not unicodedata.combining(c)
+    )
+
+
+class _Bm25SemAcento(Bm25):
+    """BM25 insensível a acento, com a lista de stopwords lida corretamente.
+
+    Duas correções sobre o Bm25 do fastembed; ambas valem para indexação e
+    busca ao mesmo tempo, porque raw_embed() e query_embed() compartilham os
+    dois métodos sobrescritos aqui. A simetria é estrutural, não disciplina.
+
+    1. ACENTO (_stem) — 'crédito' e 'credito' geravam hashes diferentes, e quem
+       digita sem acento não achava nada; ~20% do vocabulário do MCR é
+       acentuado. A dobra acontece DEPOIS da stemização, nunca antes: o stemmer
+       snowball usa o acento nas próprias regras, e sem ele 'operação' e
+       'operações' param de colapsar (viram 'operaca' e 'operaco').
+
+    2. ENCODING (_load_stopwords) — o fastembed abre o arquivo de stopwords com
+       open(path, "r") sem encoding, então o Python usa o padrão do sistema.
+       No Windows isso é cp1252 e o arquivo é UTF-8: 'até' vira 'atÃ©' e as 37
+       stopwords acentuadas ('não', 'são', 'está', 'até') deixam de filtrar
+       qualquer coisa. No Linux o mesmo código funciona — ou seja, o índice
+       dependia do sistema operacional de quem rodou a indexação.
+    """
+
+    @classmethod
+    def _load_stopwords(cls, model_dir: Path, language: str) -> list[str]:
+        stopwords_path = model_dir / f"{language}.txt"
+        if not stopwords_path.exists():
+            return []
+
+        with open(stopwords_path, encoding="utf-8") as f:
+            palavras = f.read().splitlines()
+
+        # A forma sem acento também precisa filtrar: o texto do MCR traz 'não',
+        # mas a pergunta do usuário frequentemente vem como 'nao'.
+        return palavras + [strip_accents(p) for p in palavras]
+
+    def _stem(self, tokens: list[str]) -> list[str]:
+        return [strip_accents(token) for token in super()._stem(tokens)]
+
+
+def build_bm25() -> SparseTextEmbeddingBase:
+    """Instancia o BM25 esparso.
+
+    Indexação e busca precisam usar o MESMO stemmer/stopwords/normalização —
+    construir o modelo só por aqui garante isso. O default do fastembed é
+    'english', que aplicaria stemming inglês e deixaria passar stopwords
+    portuguesas.
+    """
+    return _Bm25SemAcento(model_name=BM25_MODEL, language=BM25_LANGUAGE)
 
 
 class ChunkStrategy(str, Enum):

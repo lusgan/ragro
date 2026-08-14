@@ -3,7 +3,10 @@ qdrant-client[fastembed]
 voyageai
 python-dotenv
 opendataloader-pdf[hybrid]
-fastembed
+# Pinado: src/config.py sobrescreve Bm25._stem e Bm25._load_stopwords, que são
+# privados. Um upgrade pode mudar essas assinaturas sem aviso e quebrar a
+# normalização de acento/stopwords em silêncio — revalidar antes de subir.
+fastembed==0.8.0
 transformers
 pypdf
 azure-ai-documentintelligence
