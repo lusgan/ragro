@@ -68,6 +68,7 @@ def get_messages(conversation_id: int, user_id: int) -> list[dict[str, Any]]:
 
 def add_message(
     conversation_id: int,
+    user_id: int,
     role: str,
     content: str,
     search_mode: str | None = None,
@@ -75,6 +76,10 @@ def add_message(
 ) -> dict[str, Any]:
     """Grava uma mensagem, atualiza `updated_at` da conversa e, se for a
     primeira mensagem do usuário, deriva o título da conversa.
+
+    Escopada por `user_id` como as leituras: o INSERT só acontece se a conversa
+    pertencer ao usuário, então um `conversation_id` errado (estado de sessão
+    obsoleto, id adivinhado) falha em vez de escrever na conversa de outro.
     """
     if role not in ("user", "assistant"):
         raise ValueError(f"role inválida: {role!r}")
@@ -85,12 +90,14 @@ def add_message(
         row = conn.execute(
             text(
                 "INSERT INTO messages (conversation_id, role, content, search_mode, retrieved_chunks) "
-                "VALUES (:conversation_id, :role, :content, :search_mode, "
-                "CAST(:retrieved_chunks AS jsonb)) "
+                "SELECT c.id, :role, :content, :search_mode, CAST(:retrieved_chunks AS jsonb) "
+                "FROM conversations c "
+                "WHERE c.id = :conversation_id AND c.user_id = :user_id "
                 "RETURNING id, role, content, search_mode, retrieved_chunks, created_at"
             ),
             {
                 "conversation_id": conversation_id,
+                "user_id": user_id,
                 "role": role,
                 "content": content,
                 "search_mode": search_mode,
@@ -98,18 +105,23 @@ def add_message(
             },
         ).mappings().first()
 
+        if row is None:
+            raise PermissionError(
+                f"conversa {conversation_id} não pertence ao usuário {user_id}"
+            )
+
         conn.execute(
-            text("UPDATE conversations SET updated_at = now() WHERE id = :id"),
-            {"id": conversation_id},
+            text("UPDATE conversations SET updated_at = now() WHERE id = :id AND user_id = :user_id"),
+            {"id": conversation_id, "user_id": user_id},
         )
 
         if role == "user":
             conn.execute(
                 text(
                     "UPDATE conversations SET title = :title "
-                    "WHERE id = :id AND title IS NULL"
+                    "WHERE id = :id AND user_id = :user_id AND title IS NULL"
                 ),
-                {"id": conversation_id, "title": _derive_title(content)},
+                {"id": conversation_id, "user_id": user_id, "title": _derive_title(content)},
             )
 
         return dict(row)

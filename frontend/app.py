@@ -125,6 +125,36 @@ def render_signup_form() -> None:
             st.success("Conta criada. Use a aba \"Entrar\" para fazer login.")
 
 
+# Chaves do session_state que pertencem ao usuário logado e portanto não podem
+# sobreviver a uma troca de conta na mesma aba do browser. O logout do
+# streamlit-authenticator só limpa as chaves dele (`authentication_status`,
+# `username`, `name`) e o cookie — o resto é responsabilidade da aplicação.
+USER_SCOPED_STATE_KEYS = (
+    "_user_id",
+    "_user_email",
+    "_last_login_touched",
+    "active_conversation_id",
+    "renaming_conversation_id",
+)
+
+
+def reset_user_scoped_state() -> None:
+    for key in USER_SCOPED_STATE_KEYS:
+        st.session_state.pop(key, None)
+
+
+def sync_user_scoped_state(email: str | None) -> None:
+    """Descarta o estado do usuário anterior quando a identidade da sessão muda.
+
+    Cobre os dois lados da troca de conta na mesma aba: o logout (`email=None`)
+    e o login seguinte com outro email. Sem isso, `_user_id` sobrevive ao
+    logout e a conta seguinte lê o histórico da anterior — as queries filtram
+    por `user_id` corretamente, mas recebem o id errado.
+    """
+    if st.session_state.get("_user_email") != email:
+        reset_user_scoped_state()
+
+
 def require_login() -> dict[str, Any]:
     """Renderiza login/cadastro. Interrompe a execução do script se não
     autenticado. Retorna {"id": ..., "email": ...} do usuário logado.
@@ -137,6 +167,11 @@ def require_login() -> dict[str, Any]:
 
     if st.session_state.get("authentication_status"):
         email = st.session_state["username"]
+
+        # Antes de resolver o id: se a sessão foi herdada de outra conta, o
+        # `_user_id` antigo ainda está aqui e seria reaproveitado.
+        sync_user_scoped_state(email)
+
         with st.sidebar:
             st.caption(f"Conectado como {email}")
             authenticator.logout("Sair")
@@ -146,7 +181,12 @@ def require_login() -> dict[str, Any]:
         if "_user_id" not in st.session_state:
             user = get_user_by_email(email)
             st.session_state["_user_id"] = user["id"]
+            st.session_state["_user_email"] = email
         return {"id": st.session_state["_user_id"], "email": email}
+
+    # Não autenticado: se havia sessão, é logout — limpa antes que a próxima
+    # conta logue nesta mesma aba.
+    sync_user_scoped_state(None)
 
     tab_login, tab_signup = st.tabs(["Entrar", "Criar conta"])
     with tab_login:
@@ -233,7 +273,7 @@ def handle_new_message(prompt: str, user_id: int, client, bm25_model, history_ms
     mode = st.session_state.get("search_mode", SearchMode.HYBRID)
     llm_history = [{"role": m["role"], "content": m["content"]} for m in history_msgs]
 
-    chat_history.add_message(conversation_id, "user", prompt)
+    chat_history.add_message(conversation_id, user_id, "user", prompt)
     with st.chat_message("user"):
         st.markdown(prompt)
 
@@ -245,7 +285,11 @@ def handle_new_message(prompt: str, user_id: int, client, bm25_model, history_ms
         if not results:
             st.info("Nenhum resultado encontrado.")
             chat_history.add_message(
-                conversation_id, "assistant", "Nenhum resultado encontrado.", search_mode=mode.value
+                conversation_id,
+                user_id,
+                "assistant",
+                "Nenhum resultado encontrado.",
+                search_mode=mode.value,
             )
             return
 
@@ -270,7 +314,7 @@ def handle_new_message(prompt: str, user_id: int, client, bm25_model, history_ms
                 render_chunk(i, chunk)
 
         chat_history.add_message(
-            conversation_id, "assistant", answer, search_mode=mode.value, retrieved_chunks=chunks
+            conversation_id, user_id, "assistant", answer, search_mode=mode.value, retrieved_chunks=chunks
         )
 
 
