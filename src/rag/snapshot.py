@@ -1,9 +1,8 @@
 """Snapshot de resultados de busca — formato leve para persistir em
-`messages.retrieved_chunks` (e, agora, em `Resposta.trechos`).
+`messages.retrieved_chunks` (e em `Resposta.trechos`).
 
-Movido de `frontend/app.py`, que ainda mantém uma cópia idêntica desta função
-por um commit — uma fase posterior de frontend remove a duplicação de lá. A
-lógica e o comentário abaixo são copiados como estavam, sem alteração.
+Movido de `frontend/app.py`, que importa esta função em vez de manter a
+própria cópia.
 """
 
 from __future__ import annotations

@@ -52,9 +52,10 @@ def _get_client() -> genai.Client:
 def disponivel() -> bool:
     """True quando há credenciais suficientes para falar com o Vertex.
 
-    Substitui a constante `GENERATION_AVAILABLE` de `frontend/app.py` — o
-    frontend ainda não foi migrado para chamar esta função (outra fase faz
-    isso), mas a lógica passa a existir num só lugar.
+    Usada pelo frontend (`frontend/views/chat.py`) para cair no modo
+    degradado — busca sem geração — quando `GOOGLE_CLOUD_PROJECT` /
+    `GCLOUD_SA_BASE64` não estão configurados, já que todo agente chama o LLM
+    e não pode rodar sem isso.
     """
     return bool(os.environ.get("GOOGLE_CLOUD_PROJECT") and os.environ.get("GCLOUD_SA_BASE64"))
 
