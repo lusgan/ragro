@@ -1,15 +1,10 @@
-import base64
-import json
 import logging
-import os
 
-from google import genai
-from google.oauth2 import service_account
+from src.llm import client as llm_client
+from src.llm.client import MODELO_PRINCIPAL as MODEL_NAME
+from src.llm.client import MODELO_RAPIDO as CONDENSE_MODEL_NAME
 
 logger = logging.getLogger(__name__)
-
-MODEL_NAME = "gemini-2.5-pro"
-CONDENSE_MODEL_NAME = "gemini-2.5-flash"
 
 # Quantas mensagens (não turnos) do histórico entram no prompt — limita o
 # crescimento de tokens em conversas longas.
@@ -34,27 +29,6 @@ CONDENSE_PROMPT = (
     "acompanhamento já for independente, devolva-a sem alterações. Responda "
     "apenas com a pergunta reescrita, sem explicações, aspas ou prefixos."
 )
-
-_client: genai.Client | None = None
-
-
-def _load_sa_credentials() -> service_account.Credentials:
-    sa_info = json.loads(base64.b64decode(os.environ["GCLOUD_SA_BASE64"]))
-    return service_account.Credentials.from_service_account_info(
-        sa_info, scopes=["https://www.googleapis.com/auth/cloud-platform"]
-    )
-
-
-def _get_client() -> genai.Client:
-    global _client
-    if _client is None:
-        _client = genai.Client(
-            vertexai=True,
-            project=os.environ["GOOGLE_CLOUD_PROJECT"],
-            location=os.environ.get("GOOGLE_CLOUD_LOCATION", "us-central1"),
-            credentials=_load_sa_credentials(),
-        )
-    return _client
 
 
 def _build_context(results: list) -> str:
@@ -86,11 +60,8 @@ def condense_query(history: list[dict], question: str) -> str:
         f"PERGUNTA DE ACOMPANHAMENTO: {question}\n\n"
         "PERGUNTA INDEPENDENTE:"
     )
-    response = _get_client().models.generate_content(
-        model=CONDENSE_MODEL_NAME,
-        contents=prompt,
-    )
-    condensed = (response.text or "").strip().strip('"')
+    response = llm_client.gerar_texto(prompt, modelo=CONDENSE_MODEL_NAME)
+    condensed = (response or "").strip().strip('"')
     return condensed or question
 
 
@@ -105,8 +76,4 @@ def generate_answer(query: str, results: list, history: list[dict] | None = None
 
     prompt = f"{SYSTEM_PROMPT}\n\n{history_block}CONTEXTO:\n{context}\n\nPERGUNTA: {query}"
 
-    response = _get_client().models.generate_content(
-        model=MODEL_NAME,
-        contents=prompt,
-    )
-    return response.text
+    return llm_client.gerar_texto(prompt, modelo=MODEL_NAME)
