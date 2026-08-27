@@ -183,12 +183,12 @@ src/
     rewriter.py          condensação + inferência de filtro
     judge.py             LLM-as-a-judge sobre os trechos
     answer.py            montagem de contexto e geração da resposta
+    snapshot.py          formato leve de trechos para persistir/exibir
   agents/
-    orchestrator.py      roteamento
+    types.py             Rota, Resposta
+    orchestrator.py      roteamento (prompts do classificador no próprio módulo)
     qa.py                Agente Q&A
-    advisor.py           Agente Conselheiro
-    prompts.py           todos os templates de prompt
-    types.py             Rota, Resposta, Pergunta
+    advisor.py           Agente Conselheiro (EXTRAIR/CONDUZIR/RECOMENDAR)
   programs/
     base.py              protocolo Programa
     triagem.py           resolução de programa
