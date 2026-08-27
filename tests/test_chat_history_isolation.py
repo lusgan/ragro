@@ -10,7 +10,7 @@ opera fora do `user_id` recebido, mesmo com o `conversation_id` certo em mãos.
 
 import pytest
 
-from src import chat_history
+from src.storage import chat_history
 
 # Todo teste deste módulo fala com o Postgres de teste e começa com as tabelas
 # vazias (ver `clean_db` no conftest).

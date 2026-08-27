@@ -128,10 +128,10 @@ Este projeto consiste no desenvolvimento do pipeline de ingestão de dados (Data
 | Arquivo / Pasta | Descrição |
 |---|---|
 | `src/extractor.py` | Conversão MCR.pdf → MCR.md via opendataloader-pdf |
-| `src/chunker.py` | Parsing Markdown + chunking por seção + sub-chunking |
-| `src/database.py` | Qdrant client + criação idempotente da coleção |
-| `src/indexer.py` | Batching dinâmico + voyage-4-large + BM25 + insert + stats |
-| `src/retriever.py` | Busca híbrida RRF (dense + sparse) |
+| `src/ingestion/chunker.py` | Parsing Markdown + chunking por seção + sub-chunking |
+| `src/rag/qdrant.py` | Qdrant client + criação idempotente da coleção |
+| `src/ingestion/indexer.py` | Batching dinâmico + voyage-4-large + BM25 + insert + stats |
+| `src/rag/retriever.py` | Busca híbrida RRF (dense + sparse) |
 | `src/main.py` | CLI orchestrator — idempotência + loop de queries |
 | `requirements.txt` | Dependências Python |
 | `.env.example` | Template de credenciais (commitado) |

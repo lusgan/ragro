@@ -8,11 +8,9 @@ sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 import streamlit as st
 import streamlit_authenticator as stauth
 
-from src import (  # noqa: F401 — config aciona load_dotenv() e logging.basicConfig
-    chat_history,
-    config,
-)
-from src.auth import (
+from src import config  # noqa: F401 — aciona load_dotenv() e logging.basicConfig
+from src.storage import chat_history
+from src.storage.auth import (
     AuthError,
     create_user,
     get_user_by_email,
@@ -20,9 +18,9 @@ from src.auth import (
     touch_last_login,
 )
 from src.config import build_bm25
-from src.database import COLLECTION_NAME, QDRANT_URL, get_client
-from src.generator import condense_query, generate_answer
-from src.retriever import SearchMode, search
+from src.rag.qdrant import COLLECTION_NAME, QDRANT_URL, get_client
+from src.rag.answer import condense_query, generate_answer
+from src.rag.retriever import SearchMode, search
 
 st.set_page_config(page_title="RAG MCR", page_icon="📖", layout="centered")
 

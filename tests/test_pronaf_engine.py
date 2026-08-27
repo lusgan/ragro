@@ -23,7 +23,7 @@ from pathlib import Path
 
 import pytest
 
-from src.pronaf.engine import (
+from src.programs.pronaf.engine import (
     Perfil,
     PerfilInvalido,
     avaliar,

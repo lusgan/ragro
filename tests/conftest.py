@@ -2,10 +2,10 @@
 conftest.py
 -----------
 Infra dos testes: um Postgres descartável, o schema do app aplicado nele e o
-engine do `src.db` redirecionado para lá.
+engine do `src.storage.db` redirecionado para lá.
 
 Por que Postgres de verdade e não SQLite: o isolamento entre usuários que estes
-testes verificam mora inteiramente no SQL de `src/chat_history.py` — `INSERT ...
+testes verificam mora inteiramente no SQL de `src/storage/chat_history.py` — `INSERT ...
 SELECT ... WHERE user_id`, `CAST(... AS jsonb)`, `RETURNING`, `ON DELETE
 CASCADE`. SQLite não suporta parte disso e trataria o resto de outro jeito, ou
 seja, o teste passaria validando um SQL diferente do que roda em produção.
@@ -18,7 +18,7 @@ import pytest
 from sqlalchemy import create_engine, text
 from sqlalchemy.exc import SQLAlchemyError
 
-from src import db
+from src.storage import db
 
 SCHEMA_PATH = Path(__file__).parent / "schema.sql"
 
@@ -63,7 +63,7 @@ def engine():
 
 @pytest.fixture
 def clean_db(engine, monkeypatch):
-    """Redireciona `src.db.get_engine()` para o banco de teste e devolve as
+    """Redireciona `src.storage.db.get_engine()` para o banco de teste e devolve as
     tabelas vazias a cada teste, para que um teste não enxergue linhas de outro.
 
     Não é `autouse`: os testes de `session_state` não tocam o banco e devem

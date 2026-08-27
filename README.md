@@ -93,10 +93,10 @@ data/MCR - docx/
               └── N_-_Secao.docx
           │
           ▼
-    src/chunker.py          → LangChain Documents (1 doc/seção, split se > 28k tokens)
+    src/ingestion/chunker.py → LangChain Documents (1 doc/seção, split se > 28k tokens)
           │
           ▼
-    src/indexer.py
+    src/ingestion/indexer.py
       ├── voyage-4-large    → dense embeddings (1024-d, cosine)
       └── Qdrant/bm25       → sparse embeddings
           │
@@ -105,7 +105,7 @@ data/MCR - docx/
           │
      (query time)
           │
-    src/retriever.py
+    src/rag/retriever.py
       ├── voyage-4-lite     → dense query embedding
       ├── Qdrant/bm25       → sparse query embedding
       └── RRF Fusion        → top-5 resultados híbridos
@@ -121,9 +121,9 @@ saída para forçar a re-extração.
 
 | Módulo (`python -m ...`)              | Saída                  | Requer                        |
 |---------------------------------------|------------------------|-------------------------------|
-| `src.extraction.opendataloader`       | `data/MCR.md`          | servidor `docling-fast` (ver abaixo) |
-| `src.extraction.adobe_pdfservices`    | `data/MCR_adobe.md`    | credenciais Adobe             |
-| `src.extraction.adobe_pdf_to_json`    | `data/MCR_adobe.json`  | credenciais Adobe             |
+| `src.ingestion.extraction.opendataloader`       | `data/MCR.md`          | servidor `docling-fast` (ver abaixo) |
+| `src.ingestion.extraction.adobe_pdfservices`    | `data/MCR_adobe.md`    | credenciais Adobe             |
+| `src.ingestion.extraction.adobe_pdf_to_json`    | `data/MCR_adobe.json`  | credenciais Adobe             |
 
 O OpenDataLoader precisa do servidor hybrid num terminal separado, com o venv ativado:
 
@@ -169,15 +169,21 @@ data/
 docs/                    Documentação técnica
 src/
   config.py              load_dotenv, tokenizer Voyage, make_chunk_id
-  chunker.py             .docx → LangChain Documents
-  database.py            Qdrant client e inicialização da coleção
-  db.py                  Engine SQLAlchemy para o Postgres (Supabase)
-  auth.py                Login/cadastro (hash bcrypt, código de convite)
-  chat_history.py        Conversas e mensagens, escopadas por user_id
-  indexer.py             Embeddings, upsert e chunk_stats
-  retriever.py           Busca híbrida RRF
   main.py                Orquestrador CLI
-  extraction/            Extratores PDF (OpenDataLoader, Adobe, Azure)
+  rag/
+    qdrant.py              Qdrant client e inicialização da coleção
+    retriever.py           Busca híbrida RRF
+    answer.py              Geração de resposta
+  storage/
+    db.py                  Engine SQLAlchemy para o Postgres (Supabase)
+    auth.py                Login/cadastro (hash bcrypt, código de convite)
+    chat_history.py        Conversas e mensagens, escopadas por user_id
+  ingestion/
+    chunker.py             .docx → LangChain Documents
+    indexer.py             Embeddings, upsert e chunk_stats
+    extraction/            Extratores PDF (OpenDataLoader, Adobe, Azure)
+  programs/
+    pronaf/                Engine de regras do PRONAF
 frontend/app.py          Interface Streamlit
 tests/                   Isolamento entre usuários (camada de dados e sessão)
 qdrant_db/               Storage do Qdrant via Docker volume (não versionado)

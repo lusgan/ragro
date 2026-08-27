@@ -6,7 +6,7 @@ from fastembed.sparse.sparse_embedding_base import SparseTextEmbeddingBase
 from qdrant_client import QdrantClient
 from qdrant_client.models import Fusion, FusionQuery, Prefetch, SparseVector
 
-from .database import COLLECTION_NAME
+from .qdrant import COLLECTION_NAME
 
 logger = logging.getLogger(__name__)
 
