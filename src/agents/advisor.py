@@ -200,6 +200,7 @@ def _conduzir(pergunta: Pergunta, estado: dict, historico: list[dict] | None) ->
         # por slot; esgotado o limite, o turno seguinte é sempre uma pergunta
         # direta, então o questionário nunca fica girando em torno do mesmo
         # slot para sempre.
+        estado["opcoes_visiveis"] = True
         return Resposta(
             texto=pergunta.texto, agente="conselheiro", trechos=[], estado=estado, pergunta=pergunta
         )
@@ -213,17 +214,24 @@ def _conduzir(pergunta: Pergunta, estado: dict, historico: list[dict] | None) ->
         texto = (resultado.get("texto") or "").strip()
         if acao == "esclarecer" and texto:
             estado["esclarecimentos"][pergunta.id] = tentativas + 1
+            # As opções do engine são respostas para a pergunta que o motor
+            # ia fazer, não para este esclarecimento — não podem aparecer
+            # como chips agora (ver `pergunta_pendente`).
+            estado["opcoes_visiveis"] = False
             return Resposta(
                 texto=texto, agente="conselheiro", trechos=[], estado=estado, pergunta=pergunta
             )
         if acao == "seguir" and texto:
+            estado["opcoes_visiveis"] = True
             return Resposta(
                 texto=texto, agente="conselheiro", trechos=[], estado=estado, pergunta=pergunta
             )
 
     # `gerar_json` falhou (None), ou devolveu ação/texto que não reconhecemos:
     # a mesma rede de segurança do limite de esclarecimentos acima — nunca
-    # trava o turno, nunca pula o slot pendente.
+    # trava o turno, nunca pula o slot pendente. O texto mostrado é o do
+    # engine, então as opções dele são válidas como chips.
+    estado["opcoes_visiveis"] = True
     return Resposta(
         texto=pergunta.texto, agente="conselheiro", trechos=[], estado=estado, pergunta=pergunta
     )
@@ -315,12 +323,35 @@ def _estado_inicial() -> dict:
         "respostas": {},
         "slot_pendente": None,
         "esclarecimentos": {},
+        "opcoes_visiveis": False,
         "atualizado_em": _agora_iso(),
     }
 
 
 def _copiar_estado(estado: dict) -> dict:
     return copy.deepcopy(estado)
+
+
+def pergunta_pendente(estado: dict | None) -> Pergunta | None:
+    """Recomputa a pergunta pendente do engine a partir de um `estado`
+    persistido, para o frontend re-renderizar as opções de resposta depois de
+    um rerun ou reload de página — sem guardar uma cópia à parte em
+    `st.session_state`, já que o Postgres é a única fonte da verdade.
+
+    Devolve `None` fora das fases `triagem`/`coleta`, e também quando o
+    último turno foi de esclarecimento (`opcoes_visiveis=False`, marcado por
+    `_conduzir`): mostrar os chips do engine sob uma pergunta de
+    esclarecimento ofereceria respostas para uma pergunta que não foi a que
+    acabou de ser feita.
+    """
+    if not estado or estado.get("fase") not in ("triagem", "coleta"):
+        return None
+    if not estado.get("opcoes_visiveis"):
+        return None
+
+    if estado["fase"] == "triagem":
+        return triagem.proxima_pergunta(estado["triagem"])
+    return programs.obter(estado["programa"]).proxima_pergunta(estado["respostas"])
 
 
 # --- turno ---------------------------------------------------------------

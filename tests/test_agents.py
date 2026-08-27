@@ -464,3 +464,54 @@ def test_sessao_concluida_reinicia_coleta_mantendo_triagem_e_programa(monkeypatc
 
     # `responder` não pode ter mutado o estado original que recebeu.
     assert estado_anterior == estado_original_congelado
+
+
+# --- Agente Conselheiro: pergunta_pendente (chips do frontend) -------------
+
+
+def test_pergunta_pendente_recomputa_apos_seguir(monkeypatch) -> None:
+    """Depois de um turno 'seguir', `pergunta_pendente` reconstrói a mesma
+    pergunta do engine a partir do estado persistido — é isso que permite ao
+    frontend re-renderizar as opções depois de um rerun/reload sem guardar
+    cópia em `st.session_state`."""
+    monkeypatch.setattr(
+        llm_client,
+        "gerar_json",
+        _make_gerar_json(
+            extrair=lambda p, s: {},
+            conduzir=lambda p, s: {"acao": "seguir", "texto": "Qual sua renda?"},
+        ),
+    )
+    estado = _estado(respostas={"tipo": "individual"})
+
+    resposta = advisor.responder("continuar", None, estado, None, None)
+
+    pendente = advisor.pergunta_pendente(resposta.estado)
+    assert pendente is not None
+    assert pendente.id == resposta.pergunta.id == "renda"
+
+
+def test_pergunta_pendente_oculta_apos_esclarecer(monkeypatch) -> None:
+    """Depois de 'esclarecer', os chips não podem aparecer: seriam respostas
+    para a pergunta do engine, que não foi a que de fato apareceu neste
+    turno — mostrá-las ofereceria opções para uma pergunta não feita."""
+    monkeypatch.setattr(
+        llm_client,
+        "gerar_json",
+        _make_gerar_json(
+            extrair=lambda p, s: {},
+            conduzir=lambda p, s: {"acao": "esclarecer", "texto": "pode detalhar melhor?"},
+        ),
+    )
+    estado = _estado(respostas={"tipo": "individual"})
+
+    resposta = advisor.responder("continuar", None, estado, None, None)
+
+    assert resposta.pergunta is not None  # o engine ainda tem uma pergunta pendente
+    assert advisor.pergunta_pendente(resposta.estado) is None
+
+
+def test_pergunta_pendente_none_fora_de_triagem_ou_coleta() -> None:
+    assert advisor.pergunta_pendente(None) is None
+    estado_concluido = _estado(fase="concluido", opcoes_visiveis=True)
+    assert advisor.pergunta_pendente(estado_concluido) is None
