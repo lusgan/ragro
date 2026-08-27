@@ -1,0 +1,115 @@
+"""Reescrita da pergunta antes da busca — o primeiro passo do Agente Q&A.
+
+Uma única chamada `gerar_json` (MODELO_RAPIDO) faz duas coisas de uma vez:
+condensa a pergunta de acompanhamento numa pergunta standalone (o que
+`answer.condense_query` já fazia sozinho) e infere um filtro de seções do MCR
+quando o assunto é identificável (ex.: "PRONAF" → capítulo 10).
+
+O filtro é sempre um palpite, nunca uma certeza — por isso o schema pede uma
+lista vazia quando o modelo não tem segurança sobre o capítulo, e por isso
+`retriever.buscar_com_fallback` descarta o filtro se ele zerar a busca. Um
+capítulo errado aqui custa recall; deixar o modelo "chutar" com confiança
+custaria corretude.
+"""
+
+from __future__ import annotations
+
+from dataclasses import dataclass
+
+from src.llm import client as llm_client
+from src.llm.client import MODELO_RAPIDO
+
+from .capitulos import CAPITULOS
+
+MAX_HISTORY_MESSAGES = 6
+
+REWRITE_PROMPT = (
+    "Você prepara uma pergunta sobre o Manual de Crédito Rural (MCR) para uma "
+    "busca híbrida (dense + BM25). Faça duas coisas:\n\n"
+    "1. CONSULTA: se houver HISTÓRICO, reescreva a PERGUNTA como uma pergunta "
+    "standalone, que faça sentido sozinha, sem precisar do histórico. Mantenha "
+    "o idioma original. Se a pergunta já for independente, ou não houver "
+    "histórico, devolva-a sem alterações.\n\n"
+    "2. SEÇÕES: se o assunto apontar claramente para um ou mais capítulos do "
+    "índice abaixo, devolva-os para estreitar a busca. Se não houver certeza "
+    "razoável sobre qual capítulo, devolva uma lista vazia — um palpite errado "
+    "aqui é pior do que não filtrar nada, porque pode esconder o trecho certo.\n\n"
+    f"ÍNDICE DE CAPÍTULOS DO MCR:\n{CAPITULOS}\n\n"
+)
+
+REWRITE_SCHEMA = {
+    "type": "object",
+    "properties": {
+        "consulta": {"type": "string"},
+        "secoes_mcr": {
+            "type": "array",
+            "items": {
+                "type": "object",
+                "properties": {
+                    "capitulo_num": {"type": "integer"},
+                    "secao_label": {"type": "string"},
+                },
+            },
+        },
+    },
+    "required": ["consulta", "secoes_mcr"],
+}
+
+
+@dataclass(frozen=True)
+class Reescrita:
+    """Saída de `reescrever` — pronta para `retriever.buscar_com_fallback`."""
+
+    consulta: str          # pergunta standalone
+    secoes_mcr: list[dict]  # filtro inferido; [] quando não dá para inferir
+
+
+def _formatar_historico(historico: list[dict]) -> str:
+    speaker = {"user": "Usuário", "assistant": "Assistente"}
+    return "\n".join(f"{speaker.get(m['role'], m['role'])}: {m['content']}" for m in historico)
+
+
+def _secoes_validas(secoes: list) -> list[dict]:
+    """Descarta qualquer capítulo fora do índice conhecido, em vez de repassar
+    um número que `retriever.filtro_de_secoes` aceitaria sem checar."""
+    validas = []
+    for secao in secoes or []:
+        if not isinstance(secao, dict):
+            continue
+        capitulo = secao.get("capitulo_num")
+        if capitulo is not None and capitulo not in CAPITULOS:
+            continue
+        validas.append(secao)
+    return validas
+
+
+def reescrever(pergunta: str, historico: list[dict] | None = None) -> Reescrita:
+    """Condensa `pergunta` (usando `historico`, se houver) e infere um filtro
+    de seções do MCR. Nunca levanta — qualquer falha do LLM cai para a
+    pergunta original sem filtro, o que é sempre uma busca válida, só que sem
+    a otimização de recall."""
+    if not historico:
+        # Sem histórico não há o que condensar. Ainda vale inferir o filtro,
+        # mas só se houver pergunta — o caller sempre passa uma.
+        prompt = (
+            f"{REWRITE_PROMPT}"
+            f"PERGUNTA: {pergunta}\n\n"
+            "Responda em JSON com os campos 'consulta' (igual à pergunta, "
+            "salvo erro de digitação) e 'secoes_mcr'."
+        )
+    else:
+        prompt = (
+            f"{REWRITE_PROMPT}"
+            f"HISTÓRICO:\n{_formatar_historico(historico[-MAX_HISTORY_MESSAGES:])}\n\n"
+            f"PERGUNTA DE ACOMPANHAMENTO: {pergunta}\n\n"
+            "Responda em JSON com os campos 'consulta' (a pergunta standalone) "
+            "e 'secoes_mcr'."
+        )
+
+    resultado = llm_client.gerar_json(prompt, schema=REWRITE_SCHEMA, modelo=MODELO_RAPIDO)
+    if resultado is None:
+        return Reescrita(consulta=pergunta, secoes_mcr=[])
+
+    consulta = (resultado.get("consulta") or "").strip() or pergunta
+    secoes = _secoes_validas(resultado.get("secoes_mcr") or [])
+    return Reescrita(consulta=consulta, secoes_mcr=secoes)
