@@ -515,3 +515,90 @@ def test_pergunta_pendente_none_fora_de_triagem_ou_coleta() -> None:
     assert advisor.pergunta_pendente(None) is None
     estado_concluido = _estado(fase="concluido", opcoes_visiveis=True)
     assert advisor.pergunta_pendente(estado_concluido) is None
+
+
+# --- integração: uma conversa inteira --------------------------------------
+
+
+def test_conversa_completa_do_conselheiro_termina_com_numeros_do_engine(monkeypatch) -> None:
+    """Percorre uma consulta real de ponta a ponta e trava as duas garantias.
+
+    Os testes acima exercitam cada etapa isolada; este verifica que elas se
+    compõem — orquestrador, triagem, questionário do engine e recomendação —
+    com o estado saindo e voltando a cada turno, como sairia pelo Postgres.
+
+    Duas coisas ficam travadas aqui:
+
+    1. Roteamento sticky ao longo da conversa toda. Da segunda mensagem em
+       diante o usuário só responde slots ("Até R$ 60 mil por ano", "Mulher"),
+       que isoladamente não parecem pedido de aconselhamento; nenhuma delas
+       pode escapar para o Q&A no meio do questionário.
+    2. Procedência dos números. Todo limite e toda taxa que chegam ao prompt
+       de redação vêm de `programa.recomendar()`, nunca do LLM.
+    """
+    ultima_pergunta: dict = {"p": None}
+    prompts_redacao: list[str] = []
+
+    def fake_gerar_json(prompt, *, schema, modelo=None):
+        propriedades = set(schema.get("properties", {}))
+        if "agente" in propriedades:            # roteamento sem sessão aberta
+            return {"agente": "conselheiro", "motivo": "pede recomendação de linha"}
+        if "continuacao" in propriedades:       # roteamento sticky
+            return {"continuacao": True, "motivo": "resposta de slot"}
+        if "acao" in propriedades:              # condução
+            return {"acao": "seguir", "texto": "pergunta reformulada"}
+        # extração: o usuário respondeu a primeira opção da pergunta anterior
+        pergunta = ultima_pergunta["p"]
+        if pergunta is None or pergunta.id not in propriedades:
+            return {}
+        escolha = pergunta.opcoes[0].v
+        return {pergunta.id: [escolha] if pergunta.multipla else escolha}
+
+    monkeypatch.setattr(llm_client, "gerar_json", fake_gerar_json)
+    monkeypatch.setattr(llm_client, "gerar_texto", lambda prompt, **k: prompts_redacao.append(prompt) or "resposta")
+    monkeypatch.setattr(advisor, "buscar_com_fallback", lambda *a, **k: ([_ponto("mcr-10-1")], True))
+    monkeypatch.setattr(judge, "avaliar", lambda pergunta, trechos: Julgamento([0], True, None))
+
+    estado = None
+    mensagem = "Qual linha de crédito se encaixa na minha realidade?"
+    historico: list[dict] = []
+    fontes_de_rota = []
+
+    for _ in range(15):
+        rota = orchestrator.rotear(mensagem, historico, estado)
+        assert rota.agente == "conselheiro", (
+            f"mensagem {mensagem!r} vazou para o {rota.agente} no meio do questionário"
+        )
+        fontes_de_rota.append(rota.fonte)
+
+        resposta = advisor.responder(mensagem, historico, estado, None, None)
+        estado = resposta.estado
+        ultima_pergunta["p"] = resposta.pergunta
+        historico += [
+            {"role": "user", "content": mensagem},
+            {"role": "assistant", "content": resposta.texto},
+        ]
+        if estado["fase"] == "concluido":
+            break
+        assert resposta.pergunta is not None, "turno sem pergunta e sem conclusão"
+        mensagem = resposta.pergunta.opcoes[0].t
+    else:
+        raise AssertionError("o questionário não terminou em 15 turnos")
+
+    assert estado["programa"] == "pronaf"
+    # Só a primeira decisão consulta o classificador; o resto é sticky.
+    assert fontes_de_rota[0] == "llm"
+    assert set(fontes_de_rota[1:]) == {"sticky"}
+    assert advisor.pergunta_pendente(estado) is None  # sem chips depois de concluir
+
+    recomendacao = programs.obter("pronaf").recomendar(estado["respostas"])
+    assert recomendacao.linhas, "o perfil montado não gerou nenhuma linha elegível"
+
+    prompt_final = prompts_redacao[-1]
+    for linha in recomendacao.linhas:
+        for campo in ("nome", "limite", "juros_aa_pct"):
+            valor = linha.get(campo)
+            if valor is not None:
+                assert str(valor) in prompt_final, (
+                    f"{campo}={valor!r} veio do engine mas não chegou ao prompt de redação"
+                )
