@@ -55,7 +55,7 @@ def get_messages(conversation_id: int, user_id: int) -> list[dict[str, Any]]:
     with get_engine().connect() as conn:
         rows = conn.execute(
             text(
-                "SELECT m.id, m.role, m.content, m.search_mode, m.retrieved_chunks, m.created_at "
+                "SELECT m.id, m.role, m.content, m.search_mode, m.retrieved_chunks, m.agent, m.created_at "
                 "FROM messages m "
                 "JOIN conversations c ON c.id = m.conversation_id "
                 "WHERE m.conversation_id = :conversation_id AND c.user_id = :user_id "
@@ -73,6 +73,7 @@ def add_message(
     content: str,
     search_mode: str | None = None,
     retrieved_chunks: list[dict[str, Any]] | None = None,
+    agent: str | None = None,
 ) -> dict[str, Any]:
     """Grava uma mensagem, atualiza `updated_at` da conversa e, se for a
     primeira mensagem do usuário, deriva o título da conversa.
@@ -89,11 +90,11 @@ def add_message(
     with get_engine().begin() as conn:
         row = conn.execute(
             text(
-                "INSERT INTO messages (conversation_id, role, content, search_mode, retrieved_chunks) "
-                "SELECT c.id, :role, :content, :search_mode, CAST(:retrieved_chunks AS jsonb) "
+                "INSERT INTO messages (conversation_id, role, content, search_mode, retrieved_chunks, agent) "
+                "SELECT c.id, :role, :content, :search_mode, CAST(:retrieved_chunks AS jsonb), :agent "
                 "FROM conversations c "
                 "WHERE c.id = :conversation_id AND c.user_id = :user_id "
-                "RETURNING id, role, content, search_mode, retrieved_chunks, created_at"
+                "RETURNING id, role, content, search_mode, retrieved_chunks, agent, created_at"
             ),
             {
                 "conversation_id": conversation_id,
@@ -102,6 +103,7 @@ def add_message(
                 "content": content,
                 "search_mode": search_mode,
                 "retrieved_chunks": retrieved_chunks_json,
+                "agent": agent,
             },
         ).mappings().first()
 
