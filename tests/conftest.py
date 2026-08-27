@@ -1,8 +1,8 @@
 """
 conftest.py
 -----------
-Infra dos testes: um Postgres descartável, o schema do app aplicado nele e o
-engine do `src.storage.db` redirecionado para lá.
+Infra dos testes: um Postgres descartável, as migrações de `src/storage/migrations/`
+aplicadas nele e o engine do `src.storage.db` redirecionado para lá.
 
 Por que Postgres de verdade e não SQLite: o isolamento entre usuários que estes
 testes verificam mora inteiramente no SQL de `src/storage/chat_history.py` — `INSERT ...
@@ -20,7 +20,7 @@ from sqlalchemy.exc import SQLAlchemyError
 
 from src.storage import db
 
-SCHEMA_PATH = Path(__file__).parent / "schema.sql"
+MIGRATIONS_DIR = Path(__file__).parent.parent / "src" / "storage" / "migrations"
 
 SKIP_REASON = (
     "TEST_DATABASE_URL não definida. Suba um Postgres descartável com "
@@ -31,7 +31,7 @@ SKIP_REASON = (
 
 @pytest.fixture(scope="session")
 def engine():
-    """Engine para o banco de teste, com o schema do app já aplicado.
+    """Engine para o banco de teste, com as migrações já aplicadas.
 
     Pula a suíte inteira (em vez de falhar) quando não há banco configurado:
     o resto do projeto não depende de Postgres para rodar, e quebrar `pytest`
@@ -52,7 +52,14 @@ def engine():
     eng = create_engine(url, pool_pre_ping=True)
     try:
         with eng.begin() as conn:
-            conn.exec_driver_sql(SCHEMA_PATH.read_text(encoding="utf-8"))
+            # Recomeça do zero e reaplica as migrações em ordem de nome — as
+            # mesmas que valem para produção (ver src/storage/migrations/README.md),
+            # para que o schema de teste nunca divirja do real.
+            conn.exec_driver_sql(
+                "DROP TABLE IF EXISTS messages, conversations, invite_codes, users CASCADE"
+            )
+            for migration in sorted(MIGRATIONS_DIR.glob("*.sql")):
+                conn.exec_driver_sql(migration.read_text(encoding="utf-8"))
     except SQLAlchemyError as e:
         eng.dispose()
         pytest.skip(f"Postgres de teste inacessível em {url}: {e}")

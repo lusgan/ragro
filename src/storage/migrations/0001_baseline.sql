@@ -1,21 +1,16 @@
--- Schema das tabelas do app, usado só pelos testes.
+-- Schema base do app (users, invite_codes, conversations, messages).
 --
--- ATENÇÃO: o schema de produção vive no Supabase e foi criado à mão — este
--- arquivo é uma réplica, não a fonte da verdade. Ele foi extraído do banco real
--- (information_schema) e precisa ser atualizado junto com qualquer alteração
--- feita lá, senão os testes passam contra um schema que não existe mais.
+-- Idempotente de propósito: `CREATE TABLE IF NOT EXISTS`, sem nenhum DROP.
+-- Este arquivo é aplicado à mão contra o Supabase de produção (ver README.md
+-- deste diretório) — um DROP aqui apagaria dados reais. Os testes aplicam o
+-- mesmo arquivo, então o schema de teste nunca mais diverge do de produção.
 --
--- Diferenças propositais em relação à produção: sem RLS (os testes conectam com
--- o dono do banco, para quem o RLS não se aplica de qualquer forma) e sem as
--- tabelas de indexação (run_log, chunks_docx, chunk_stats), que não participam
--- do fluxo de conversas.
+-- Diferenças propositais em relação à produção: sem RLS (os testes conectam
+-- com o dono do banco, para quem o RLS não se aplica de qualquer forma) e sem
+-- as tabelas de indexação (run_log, chunks_docx, chunk_stats), que não
+-- participam do fluxo de conversas.
 
-DROP TABLE IF EXISTS messages CASCADE;
-DROP TABLE IF EXISTS conversations CASCADE;
-DROP TABLE IF EXISTS invite_codes CASCADE;
-DROP TABLE IF EXISTS users CASCADE;
-
-CREATE TABLE users (
+CREATE TABLE IF NOT EXISTS users (
     id            BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
     email         TEXT NOT NULL UNIQUE,
     password_hash TEXT NOT NULL,
@@ -25,7 +20,7 @@ CREATE TABLE users (
     last_login_at TIMESTAMPTZ
 );
 
-CREATE TABLE invite_codes (
+CREATE TABLE IF NOT EXISTS invite_codes (
     code       TEXT PRIMARY KEY,
     created_by BIGINT REFERENCES users (id),
     used_by    BIGINT REFERENCES users (id),
@@ -34,7 +29,7 @@ CREATE TABLE invite_codes (
     created_at TIMESTAMPTZ NOT NULL DEFAULT now()
 );
 
-CREATE TABLE conversations (
+CREATE TABLE IF NOT EXISTS conversations (
     id         BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
     user_id    BIGINT NOT NULL REFERENCES users (id),
     title      TEXT,
@@ -42,7 +37,7 @@ CREATE TABLE conversations (
     updated_at TIMESTAMPTZ NOT NULL DEFAULT now()
 );
 
-CREATE TABLE messages (
+CREATE TABLE IF NOT EXISTS messages (
     id               BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
     conversation_id  BIGINT NOT NULL REFERENCES conversations (id) ON DELETE CASCADE,
     role             TEXT NOT NULL CHECK (role = ANY (ARRAY['user'::text, 'assistant'::text])),
