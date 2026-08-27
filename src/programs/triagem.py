@@ -29,14 +29,28 @@ LIMIAR_PRONAMP = {
 }
 
 # Faixas adicionais às do PRONAF, só para a triagem — não existem no ruleset.
+# Começam onde a última faixa do PRONAF termina (R$ 714,5 mil): sobrepor a
+# 'ate714k' daria ao usuário duas opções válidas para a mesma renda.
 _RENDA_ADICIONAL = [
-    {"v": "ate3mi", "l": "De R$ 500 mil a R$ 3 milhões por ano"},
+    {"v": "ate3mi", "l": "De R$ 714,5 mil a R$ 3 milhões por ano"},
     {"v": "acima3mi", "l": "Acima de R$ 3 milhões por ano"},
 ]
 
+# 'nenhuma' ("Nenhuma das opções acima") existe no questionário do PRONAF, onde
+# significa "minha renda passa do teto do PRONAF" — lá é a última opção da
+# lista. Na triagem existem opções acima dela, então oferecê-la seria oferecer
+# duas respostas para a mesma coisa, e resolvê-la como PRONAF mandaria para o
+# questionário do PRONAF justamente quem declarou não caber nele. Fica de fora
+# daqui; continua válida no vocabulário do programa.
+_RENDA_FORA_DA_TRIAGEM = {"nenhuma"}
+
 
 def _opcoes_renda_pronaf() -> list[dict[str, str]]:
-    return [{"v": o["v"], "l": o["l"]} for o in engine.ruleset()["perguntas"]["renda"]["opcoes"]]
+    return [
+        {"v": o["v"], "l": o["l"]}
+        for o in engine.ruleset()["perguntas"]["renda"]["opcoes"]
+        if o["v"] not in _RENDA_FORA_DA_TRIAGEM
+    ]
 
 
 def _opcoes_renda() -> list[dict[str, str]]:

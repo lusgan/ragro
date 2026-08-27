@@ -27,16 +27,35 @@ def test_triagem_incompleta_devolve_none() -> None:
     assert triagem.proxima_pergunta({}).id == "renda"
 
 
-@pytest.mark.parametrize("bucket", ["ate60k", "ate150k", "ate500k", "ate714k", "nenhuma"])
+@pytest.mark.parametrize("bucket", ["ate60k", "ate150k", "ate500k", "ate714k"])
 def test_triagem_faixas_pronaf_resolvem_pronaf(bucket: str) -> None:
     """Toda faixa de renda do próprio ruleset do PRONAF resolve para 'pronaf'."""
     assert triagem.resolver({"renda": bucket}) == "pronaf"
 
 
-@pytest.mark.parametrize("bucket", ["ate60k", "ate150k", "ate500k", "ate714k", "nenhuma"])
+@pytest.mark.parametrize("bucket", ["ate60k", "ate150k", "ate500k", "ate714k"])
 def test_triagem_nao_pergunta_renda_da_atividade_para_faixas_pronaf(bucket: str) -> None:
     """`renda_da_atividade` só existe para a faixa 'ate3mi' — diverge do simulador oficial."""
     assert triagem.proxima_pergunta({"renda": bucket}) is None
+
+
+def test_triagem_nao_oferece_nenhuma_das_opcoes_acima() -> None:
+    """'nenhuma' é a saída de "passo do teto" DENTRO do questionário do PRONAF.
+
+    Na triagem existem faixas acima dela, então ela seria uma segunda resposta
+    para a mesma renda — e resolvê-la como PRONAF mandaria para o questionário
+    do PRONAF exatamente quem disse não caber nele.
+    """
+    assert "nenhuma" not in {o.v for o in triagem.proxima_pergunta({}).opcoes}
+    assert triagem.resolver({"renda": "nenhuma"}) != "pronaf"
+
+
+def test_triagem_faixas_de_renda_nao_se_sobrepoem() -> None:
+    """Nenhuma renda pode caber em duas opções: a 'ate3mi' começa onde a última
+    faixa do PRONAF termina (R$ 714,5 mil), não em R$ 500 mil."""
+    rotulos = {o.v: o.t for o in triagem.proxima_pergunta({}).opcoes}
+    assert "714,5" in rotulos["ate3mi"]
+    assert "500 mil" not in rotulos["ate3mi"]
 
 
 def test_triagem_ate3mi_pergunta_renda_da_atividade() -> None:
@@ -61,10 +80,11 @@ def test_triagem_acima3mi_resolve_outros_sem_perguntar_atividade() -> None:
 
 
 def test_triagem_renda_reaproveita_vocabulario_do_ruleset_pronaf() -> None:
-    """As opções de renda da triagem = opções do ruleset do PRONAF + 2 faixas novas."""
+    """Opções de renda da triagem = faixas do ruleset do PRONAF (menos a saída
+    'nenhuma') + as 2 faixas acima do teto. Lidas do ruleset, nunca copiadas."""
     valores_ruleset = {o["v"] for o in engine.ruleset()["perguntas"]["renda"]["opcoes"]}
     opcoes_triagem = {o.v for o in triagem.proxima_pergunta({}).opcoes}
-    assert valores_ruleset <= opcoes_triagem
+    assert valores_ruleset - {"nenhuma"} <= opcoes_triagem
     assert opcoes_triagem - valores_ruleset == {"ate3mi", "acima3mi"}
 
 
