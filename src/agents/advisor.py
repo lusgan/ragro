@@ -15,7 +15,7 @@ from __future__ import annotations
 import copy
 import logging
 from datetime import datetime, timezone
-from typing import Any, Callable
+from typing import Any
 
 from qdrant_client import QdrantClient
 
@@ -24,7 +24,7 @@ from src.agents.types import Resposta
 from src.llm import client as llm_client
 from src.llm.client import MODELO_RAPIDO
 from src.programs import triagem
-from src.programs.base import Pergunta, RespostasInvalidas
+from src.programs.base import Pergunta, RespostasInvalidas, Slot
 from src.rag import answer, judge
 from src.rag.retriever import SearchMode, buscar_com_fallback
 from src.rag.snapshot import snapshot
@@ -42,11 +42,6 @@ MAX_ESCLARECIMENTOS_POR_SLOT = 1
 MAX_RODADAS_BUSCA = 3
 
 MAX_HISTORY_MESSAGES = 6
-
-# Cap de segurança da exploração do questionário em `_explorar` — bem acima
-# do que PRONAF (~1900 nós) ou PRONAMP (~60 nós) precisam; existe só para não
-# rodar sem limite se um programa futuro tiver uma árvore muito maior.
-_MAX_NOS_EXPLORACAO = 20_000
 
 MSG_OUTROS = (
     "Pelo perfil de renda informado, esse caso fica acima dos tetos do PRONAF "
@@ -76,101 +71,60 @@ def _formatar_historico(historico: list[dict]) -> str:
     return "\n".join(f"{speaker.get(m['role'], m['role'])}: {m['content']}" for m in historico)
 
 
-def _explorar(obter_pergunta: Callable[[dict], Pergunta | None]) -> tuple[dict[str, list[str]], dict[str, bool]]:
-    """Descobre, por busca em largura sobre `obter_pergunta` (a mesma função
-    de `programa.proxima_pergunta` ou de `triagem.proxima_pergunta`), o
-    vocabulário completo do questionário e se cada slot é de múltipla
-    escolha — informação que `Programa.vocabulario()` não expõe, e que
-    `triagem` nem tem, mas que o schema de EXTRAIR precisa para pedir string
-    ou lista ao LLM.
+def _slots_do_turno(estado: dict) -> dict[str, Slot]:
+    """Campos que a extração deste turno pode preencher: os da triagem
+    enquanto ela não resolveu o programa, os do programa depois disso.
 
-    Responde cada pergunta encontrada com cada uma de suas opções (uma de
-    cada vez, mesmo em campos de múltipla escolha) para alcançar todo ramo
-    condicional — ex.: no PRONAF, 'organico' só aparece quando 'finalidade'
-    inclui 'custeio'. Puro e offline (só chama `obter_pergunta`, sem LLM);
-    para PRONAF isso visita ~1900 nós em milissegundos. `_MAX_NOS_EXPLORACAO`
-    é só uma rede de segurança.
+    Vem do próprio questionário (`Programa.slots()` / `triagem.slots()`), que
+    deriva do ruleset. Descobrir isso percorrendo a árvore de perguntas seria
+    reconstruir por força bruta um dado que a fonte já declara — e amarraria
+    o conselheiro ao formato da árvore de cada programa.
     """
-    vocabulario: dict[str, list[str]] = {}
-    multiplicidade: dict[str, bool] = {}
-    visitados: set[tuple] = set()
-    fila: list[dict[str, Any]] = [{}]
-
-    while fila and len(visitados) < _MAX_NOS_EXPLORACAO:
-        respostas = fila.pop()
-        chave = tuple(
-            sorted((k, tuple(v) if isinstance(v, list) else v) for k, v in respostas.items())
-        )
-        if chave in visitados:
-            continue
-        visitados.add(chave)
-
-        pergunta = obter_pergunta(respostas)
-        if pergunta is None:
-            continue
-
-        multiplicidade[pergunta.id] = pergunta.multipla
-        valores = vocabulario.setdefault(pergunta.id, [])
-        for opcao in pergunta.opcoes:
-            if opcao.v not in valores:
-                valores.append(opcao.v)
-            valor_resposta: Any = [opcao.v] if pergunta.multipla else opcao.v
-            fila.append({**respostas, pergunta.id: valor_resposta})
-
-    return vocabulario, multiplicidade
-
-
-def _vocabulario_e_multiplicidade(estado: dict) -> tuple[dict[str, list[str]], dict[str, bool]]:
-    """Vocabulário do turno atual: o de `triagem` durante a triagem, ou o
-    oficial de `programa.vocabulario()` durante a coleta — `_explorar` só
-    entra para descobrir a multiplicidade de cada slot do programa, já que
-    `vocabulario()` não carrega essa informação."""
     if estado["fase"] == "triagem":
-        return _explorar(triagem.proxima_pergunta)
-
-    programa = programs.obter(estado["programa"])
-    _, multiplicidade = _explorar(programa.proxima_pergunta)
-    return programa.vocabulario(), multiplicidade
+        return triagem.slots()
+    return programs.obter(estado["programa"]).slots()
 
 
-def _schema_extracao(vocabulario: dict[str, list[str]], multiplicidade: dict[str, bool]) -> dict:
+def _schema_extracao(slots: dict[str, Slot]) -> dict:
     propriedades = {}
-    for slot, valores in vocabulario.items():
-        if not valores:
+    for nome, slot in slots.items():
+        if not slot.valores:
             continue
-        if multiplicidade.get(slot, False):
-            propriedades[slot] = {"type": "array", "items": {"type": "string", "enum": valores}}
+        if slot.multipla:
+            propriedades[nome] = {
+                "type": "array",
+                "items": {"type": "string", "enum": slot.valores},
+            }
         else:
-            propriedades[slot] = {"type": "string", "enum": valores}
+            propriedades[nome] = {"type": "string", "enum": slot.valores}
     return {"type": "object", "properties": propriedades}
 
 
-def _validar_extracao(resultado: dict, vocabulario: dict[str, list[str]]) -> dict[str, Any]:
+def _validar_extracao(resultado: dict, slots: dict[str, Slot]) -> dict[str, Any]:
     """Descarta qualquer valor fora do vocabulário — o enum do schema é um
     palpite do LLM, não uma garantia, e um valor aproximado é pior do que uma
     pergunta refeita."""
     validos: dict[str, Any] = {}
-    for slot, valores in vocabulario.items():
-        if slot not in resultado:
+    for nome, slot in slots.items():
+        if nome not in resultado:
             continue
-        permitidos = set(valores)
-        valor = resultado[slot]
+        permitidos = set(slot.valores)
+        valor = resultado[nome]
         if isinstance(valor, list):
             lista = [v for v in valor if isinstance(v, str) and v in permitidos]
             if lista:
-                validos[slot] = lista
+                validos[nome] = lista
         elif isinstance(valor, str) and valor in permitidos:
-            validos[slot] = valor
+            validos[nome] = valor
     return validos
 
 
 def _extrair(
     pergunta_usuario: str,
     historico: list[dict] | None,
-    vocabulario: dict[str, list[str]],
-    multiplicidade: dict[str, bool],
+    slots: dict[str, Slot],
 ) -> dict[str, Any]:
-    schema = _schema_extracao(vocabulario, multiplicidade)
+    schema = _schema_extracao(slots)
     if not schema["properties"]:
         return {}
 
@@ -182,7 +136,7 @@ def _extrair(
     resultado = llm_client.gerar_json(prompt, schema=schema, modelo=MODELO_RAPIDO)
     if not isinstance(resultado, dict):
         return {}
-    return _validar_extracao(resultado, vocabulario)
+    return _validar_extracao(resultado, slots)
 
 
 # --- CONDUZIR --------------------------------------------------------------
@@ -395,8 +349,7 @@ def responder(
         estado_atual["fase"] = "coleta"
 
     # 1. EXTRAIR — cobre todo o vocabulário do turno atual de uma vez.
-    vocabulario, multiplicidade = _vocabulario_e_multiplicidade(estado_atual)
-    extraido = _extrair(pergunta, historico, vocabulario, multiplicidade)
+    extraido = _extrair(pergunta, historico, _slots_do_turno(estado_atual))
     alvo = estado_atual["triagem"] if estado_atual["fase"] == "triagem" else estado_atual["respostas"]
     alvo.update(extraido)
 

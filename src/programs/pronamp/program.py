@@ -16,7 +16,7 @@ import json
 from pathlib import Path
 from typing import Any
 
-from src.programs.base import Opcao, Pergunta, Recomendacao
+from src.programs.base import Opcao, Pergunta, Recomendacao, Slot
 
 PERGUNTAS_PATH = Path(__file__).with_name("perguntas.json")
 
@@ -36,11 +36,17 @@ class ProgramaPronamp:
     id = "pronamp"
     nome = "PRONAMP — Programa Nacional de Apoio ao Médio Produtor Rural"
 
-    def vocabulario(self) -> dict[str, list[str]]:
+    def slots(self) -> dict[str, Slot]:
         return {
-            chave: [o["v"] for o in pergunta["opcoes"]]
+            chave: Slot(
+                valores=[o["v"] for o in pergunta["opcoes"]],
+                multipla=bool(pergunta["multipla"]),
+            )
             for chave, pergunta in _dados()["perguntas"].items()
         }
+
+    def vocabulario(self) -> dict[str, list[str]]:
+        return {chave: s.valores for chave, s in self.slots().items()}
 
     def proxima_pergunta(self, respostas: dict) -> Pergunta | None:
         dados = _dados()

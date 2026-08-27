@@ -34,6 +34,21 @@ class Pergunta:
 
 
 @dataclass(frozen=True)
+class Slot:
+    """Um campo do questionário, do ponto de vista de quem preenche.
+
+    `multipla` importa tanto quanto `valores`: é ela que decide se o schema de
+    extração pede uma string ou uma lista ao LLM. Sem isso exposto aqui, a
+    única forma de descobrir a multiplicidade de um slot seria percorrer o
+    questionário inteiro atrás das perguntas — trabalho para redescobrir um
+    dado que o ruleset já declara.
+    """
+
+    valores: list[str]
+    multipla: bool
+
+
+@dataclass(frozen=True)
 class Recomendacao:
     """Resultado de `recomendar()` — o que o Agente Conselheiro usa para redigir."""
 
@@ -54,8 +69,13 @@ class Programa(Protocol):
     id: str
     nome: str
 
+    def slots(self) -> dict[str, Slot]:
+        """Slot -> valores aceitos e multiplicidade. Base do JSON schema da
+        extração por LLM."""
+        ...
+
     def vocabulario(self) -> dict[str, list[str]]:
-        """Slot -> valores aceitos. Base do JSON schema da extração por LLM."""
+        """Slot -> valores aceitos. Derivado de `slots()`, nunca mantido à parte."""
         ...
 
     def proxima_pergunta(self, respostas: dict) -> Pergunta | None:

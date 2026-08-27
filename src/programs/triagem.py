@@ -18,7 +18,7 @@ from __future__ import annotations
 
 from typing import Any
 
-from src.programs.base import Opcao, Pergunta
+from src.programs.base import Opcao, Pergunta, Slot
 from src.programs.pronaf import engine
 
 LIMIAR_PRONAMP = {
@@ -55,6 +55,20 @@ def _opcoes_renda_pronaf() -> list[dict[str, str]]:
 
 def _opcoes_renda() -> list[dict[str, str]]:
     return _opcoes_renda_pronaf() + _RENDA_ADICIONAL
+
+
+def slots() -> dict[str, Slot]:
+    """Slots da triagem, no mesmo formato de `Programa.slots()`.
+
+    A triagem não é um `Programa` — não tem `recomendar` —, mas o Agente
+    Conselheiro monta o schema de extração do mesmo jeito nas duas fases, e
+    para isso precisa da mesma descrição de campos. Ambas as perguntas são de
+    escolha única.
+    """
+    return {
+        "renda": Slot(valores=[o["v"] for o in _opcoes_renda()], multipla=False),
+        "renda_da_atividade": Slot(valores=["sim", "nao"], multipla=False),
+    }
 
 
 def proxima_pergunta(triagem: dict[str, Any]) -> Pergunta | None:

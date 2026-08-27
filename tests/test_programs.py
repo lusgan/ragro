@@ -217,3 +217,32 @@ def test_pronamp_questionario_termina() -> None:
         assert passos <= 10
         _responder_com_primeira_opcao(respostas, pergunta)
     assert programa.recomendar(respostas).linhas == []
+
+
+def test_slots_declaram_multiplicidade_vinda_do_ruleset() -> None:
+    """A multiplicidade de cada slot sai do ruleset, não de inspeção da árvore.
+
+    O schema de extração do Agente Conselheiro precisa saber se um slot pede
+    string ou lista. Descobrir isso percorrendo o questionário funcionaria, mas
+    reconstruiria por força bruta um dado que o ruleset já declara — este teste
+    trava a origem.
+    """
+    slots = programs.obter("pronaf").slots()
+    perguntas = engine.ruleset()["perguntas"]
+
+    assert slots["perfil"].multipla is perguntas["perfil"]["multipla"] is True
+    assert slots["renda"].multipla is perguntas["renda"]["multipla"] is False
+    assert slots["finalidade"].multipla is perguntas["finalidade_pf"]["multipla"] is True
+
+    # `vocabulario()` deriva de `slots()` — não são duas fontes que podem divergir.
+    assert programs.obter("pronaf").vocabulario() == {
+        nome: slot.valores for nome, slot in slots.items()
+    }
+
+
+def test_triagem_expoe_slots_no_mesmo_formato_dos_programas() -> None:
+    """O conselheiro monta o schema de extração igual nas duas fases."""
+    slots = triagem.slots()
+    assert set(slots) == {"renda", "renda_da_atividade"}
+    assert all(not slot.multipla for slot in slots.values())
+    assert {o.v for o in triagem.proxima_pergunta({}).opcoes} == set(slots["renda"].valores)

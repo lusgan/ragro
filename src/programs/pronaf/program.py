@@ -15,7 +15,7 @@ from __future__ import annotations
 
 from typing import Any
 
-from src.programs.base import Opcao, Pergunta, Recomendacao, RespostasInvalidas
+from src.programs.base import Opcao, Pergunta, Recomendacao, RespostasInvalidas, Slot
 from src.programs.pronaf import engine
 
 
@@ -75,16 +75,27 @@ class ProgramaPronaf:
     id = "pronaf"
     nome = "PRONAF — Programa Nacional de Fortalecimento da Agricultura Familiar"
 
-    def vocabulario(self) -> dict[str, list[str]]:
-        """Deriva o vocabulário do ruleset — nunca uma cópia à mão, para acompanhá-lo."""
-        vocab: dict[str, list[str]] = {}
+    def slots(self) -> dict[str, Slot]:
+        """Deriva os slots do ruleset — nunca uma cópia à mão, para acompanhá-lo.
+
+        `finalidade_pf` e `finalidade_coop` colapsam no mesmo slot `finalidade`
+        (o `Perfil` do engine tem um campo só), então os valores das duas se
+        somam; a multiplicidade é a mesma nas duas, por serem a mesma pergunta
+        sob escopos diferentes.
+        """
+        valores: dict[str, list[str]] = {}
+        multipla: dict[str, bool] = {}
         for chave, pergunta in engine.ruleset()["perguntas"].items():
             slot = _SLOT_DE_PERGUNTA.get(chave, chave)
-            valores = vocab.setdefault(slot, [])
+            aceitos = valores.setdefault(slot, [])
             for opcao in pergunta["opcoes"]:
-                if opcao["v"] not in valores:
-                    valores.append(opcao["v"])
-        return vocab
+                if opcao["v"] not in aceitos:
+                    aceitos.append(opcao["v"])
+            multipla[slot] = multipla.get(slot, False) or bool(pergunta["multipla"])
+        return {slot: Slot(valores=v, multipla=multipla[slot]) for slot, v in valores.items()}
+
+    def vocabulario(self) -> dict[str, list[str]]:
+        return {slot: s.valores for slot, s in self.slots().items()}
 
     def proxima_pergunta(self, respostas: dict) -> Pergunta | None:
         p = _perfil_leniente(respostas)
