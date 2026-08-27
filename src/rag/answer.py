@@ -5,8 +5,6 @@ from src.llm import client as llm_client
 from src.llm.client import MODELO_PRINCIPAL as MODEL_NAME
 from src.programs.base import Recomendacao
 
-from . import rewriter
-
 logger = logging.getLogger(__name__)
 
 # Quantas mensagens (não turnos) do histórico entram no prompt — limita o
@@ -71,25 +69,6 @@ def _build_context(results: list) -> str:
 def _format_history(history: list[dict]) -> str:
     speaker = {"user": "Usuário", "assistant": "Assistente"}
     return "\n".join(f"{speaker.get(m['role'], m['role'])}: {m['content']}" for m in history)
-
-
-def condense_query(history: list[dict], question: str) -> str:
-    """Reescreve `question` como pergunta standalone, incorporando o `history`
-    da conversa.
-
-    Delega a `rewriter.reescrever` — a condensação passou a viver num só
-    lugar, que também infere o filtro de metadados. Mantida por compatibilidade:
-    `frontend/app.py` ainda importa esta função; uma fase posterior a remove.
-    """
-    return rewriter.reescrever(question, history).consulta
-
-
-def generate_answer(query: str, results: list, history: list[dict] | None = None) -> str:
-    """Mantida por compatibilidade — `frontend/app.py` ainda importa esta
-    função; uma fase posterior a remove. Equivale a `gerar_resposta(...,
-    com_cta=False)`.
-    """
-    return gerar_resposta(query, results, history, com_cta=False)
 
 
 def gerar_resposta(

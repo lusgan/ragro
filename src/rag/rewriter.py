@@ -1,9 +1,9 @@
 """Reescrita da pergunta antes da busca — o primeiro passo do Agente Q&A.
 
 Uma única chamada `gerar_json` (MODELO_RAPIDO) faz duas coisas de uma vez:
-condensa a pergunta de acompanhamento numa pergunta standalone (o que
-`answer.condense_query` já fazia sozinho) e infere um filtro de seções do MCR
-quando o assunto é identificável (ex.: "PRONAF" → capítulo 10).
+condensa a pergunta de acompanhamento numa pergunta standalone e infere um
+filtro de seções do MCR quando o assunto é identificável (ex.: "PRONAF" →
+capítulo 10).
 
 O filtro é sempre um palpite, nunca uma certeza — por isso o schema pede uma
 lista vazia quando o modelo não tem segurança sobre o capítulo, e por isso
