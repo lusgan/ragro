@@ -67,6 +67,17 @@ Modelo: `gemini-2.5-flash` com saída JSON estruturada.
    metadados quando o assunto é identificável (ex.: PRONAF → Cap. 10).
 2. **Busca híbrida + filtro por metadados** (`rag/retriever.py`) — dense + BM25
    com fusão RRF, agora aceitando um `Filter` do Qdrant sobre o payload.
+
+   Filtrar por um campo de payload exige que ele tenha **índice declarado na
+   coleção**: sem isso o Qdrant recusa a consulta com 400, não devolve busca
+   vazia. Por isso `qdrant.CAMPOS_FILTRAVEIS` é a fonte única — dela saem os
+   índices (`garantir_indices`, chamada por `init_collection` e por
+   `scripts/ensure_indexes.py`) e os campos que `filtro_de_secoes` aceita.
+   Campo novo no filtro exige entrada nesse dict e o script rodado no cluster.
+
+   O filtro é sempre descartável: `buscar_com_fallback` refaz a busca sem ele
+   tanto quando ela zera quanto quando o Qdrant a recusa. Um refinamento
+   opcional não pode derrubar a resposta.
 3. **LLM-as-a-judge** (`rag/judge.py`) — classifica cada trecho como relevante
    ou não e descarta os irrelevantes antes da geração.
 4. **Resposta + call-to-action** (`rag/answer.py`) — ao final, um convite

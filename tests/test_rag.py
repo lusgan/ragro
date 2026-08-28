@@ -13,11 +13,12 @@ from __future__ import annotations
 from dataclasses import dataclass
 from typing import Any
 
+from qdrant_client.http.exceptions import UnexpectedResponse
 from qdrant_client.models import Filter
 
 from src.llm import client as llm_client
 from src.programs.base import Recomendacao
-from src.rag import answer, judge, retriever, rewriter
+from src.rag import answer, judge, qdrant, retriever, rewriter
 from src.rag.retriever import SearchMode
 
 
@@ -144,6 +145,149 @@ def test_buscar_com_fallback_sem_secoes_busca_direto_sem_filtro(monkeypatch) -> 
     assert resultados == ["resultado"]
     assert filtro_aplicado is False
     assert chamadas == [None]  # uma única busca, sem filtro nenhum
+
+
+def test_buscar_com_fallback_refaz_sem_filtro_quando_o_qdrant_recusa_o_filtro(
+    monkeypatch,
+) -> None:
+    """Filtro recusado pelo servidor tem o mesmo destino de filtro que zera a busca.
+
+    O caso real: `capitulo_num` não tinha índice de payload na coleção, e o
+    Qdrant respondeu 400 em vez de devolver zero resultados — a pergunta inteira
+    morria por causa de um refinamento opcional. O filtro é descartável em
+    qualquer modo de falha, não só no vazio.
+    """
+    chamadas = []
+
+    def fake_search(query_text, client, bm25_model, mode=SearchMode.HYBRID, filtro=None):
+        chamadas.append(filtro)
+        if filtro is not None:
+            raise UnexpectedResponse(
+                status_code=400,
+                reason_phrase="Bad Request",
+                content=b'{"status":{"error":"Index required but not found"}}',
+                headers=None,
+            )
+        return ["resultado-sem-filtro"]
+
+    monkeypatch.setattr(retriever, "search", fake_search)
+
+    resultados, filtro_aplicado = retriever.buscar_com_fallback(
+        "pergunta qualquer",
+        client=None,
+        bm25_model=None,
+        mode=SearchMode.HYBRID,
+        secoes=[{"capitulo_num": 10}],
+    )
+
+    assert resultados == ["resultado-sem-filtro"]
+    assert filtro_aplicado is False
+    assert len(chamadas) == 2
+
+
+def test_buscar_com_fallback_propaga_erro_que_nao_vem_do_filtro(monkeypatch) -> None:
+    """Engolir o 400 do filtro não pode virar engolir Qdrant fora do ar.
+
+    A busca sem filtro é a segunda tentativa, não um `except` que silencia: um
+    erro que não vem do filtro reaparece nela e sobe.
+    """
+
+    def fake_search(query_text, client, bm25_model, mode=SearchMode.HYBRID, filtro=None):
+        raise UnexpectedResponse(
+            status_code=503,
+            reason_phrase="Service Unavailable",
+            content=b"",
+            headers=None,
+        )
+
+    monkeypatch.setattr(retriever, "search", fake_search)
+
+    try:
+        retriever.buscar_com_fallback(
+            "pergunta qualquer",
+            client=None,
+            bm25_model=None,
+            mode=SearchMode.HYBRID,
+            secoes=[{"capitulo_num": 10}],
+        )
+    except UnexpectedResponse as e:
+        assert e.status_code == 503
+    else:
+        raise AssertionError("erro alheio ao filtro foi engolido pelo fallback")
+
+
+# --- índices de payload -------------------------------------------------------
+#
+# O filtro e a coleção precisam concordar sobre quais campos são filtráveis. Um
+# campo aceito pelo filtro sem índice na coleção não devolve busca vazia: o
+# Qdrant recusa a consulta com 400.
+
+
+def test_todo_campo_filtravel_tem_indice_declarado() -> None:
+    """`_CAMPOS_FILTRO` deriva de `CAMPOS_FILTRAVEIS` — não é uma segunda lista."""
+    assert set(retriever._CAMPOS_FILTRO) == set(qdrant.CAMPOS_FILTRAVEIS)
+    assert retriever._CAMPOS_FILTRO["capitulo_num"] is int
+    assert retriever._CAMPOS_FILTRO["secao_label"] is str
+
+
+def test_secoes_pedidas_pelos_programas_sao_todas_filtraveis() -> None:
+    """Nenhum programa pode pedir um campo que a coleção não indexa.
+
+    As `secoes_mcr` de cada `Recomendacao` vão direto para `filtro_de_secoes`.
+    Um campo novo ali sem índice correspondente é o bug de produção de volta —
+    e ele não aparece como busca pior, aparece como resposta que não sai.
+    """
+    import src.programs as programs
+
+    for pid in programs.ids():
+        programa = programs.obter(pid)
+        respostas: dict = {}
+        while (pergunta := programa.proxima_pergunta(respostas)) is not None:
+            respostas[pergunta.id] = (
+                [pergunta.opcoes[0].v] if pergunta.multipla else pergunta.opcoes[0].v
+            )
+        chaves = {c for secao in programa.recomendar(respostas).secoes_mcr for c in secao}
+        assert chaves, f"{pid} não declara seção nenhuma"
+        assert chaves <= set(qdrant.CAMPOS_FILTRAVEIS), f"{pid} filtra por campo sem índice"
+
+
+class _ClientFalso:
+    """Duble do QdrantClient só para `garantir_indices` — sem rede."""
+
+    def __init__(self, schema: dict) -> None:
+        self._schema = dict(schema)
+        self.criados: list[tuple[str, object]] = []
+
+    def get_collection(self, collection_name):  # noqa: ARG002
+        return type("Info", (), {"payload_schema": self._schema})()
+
+    def create_payload_index(self, *, collection_name, field_name, field_schema, wait):  # noqa: ARG002
+        self.criados.append((field_name, field_schema))
+        self._schema[field_name] = field_schema
+
+
+def test_garantir_indices_cria_os_que_faltam() -> None:
+    client = _ClientFalso({})
+    criados = qdrant.garantir_indices(client)
+
+    assert set(criados) == set(qdrant.CAMPOS_FILTRAVEIS)
+    assert dict(client.criados) == qdrant.CAMPOS_FILTRAVEIS
+
+
+def test_garantir_indices_e_idempotente() -> None:
+    """Roda em toda inicialização — não pode reescrever índice que já existe."""
+    client = _ClientFalso({})
+    qdrant.garantir_indices(client)
+    client.criados.clear()
+
+    assert qdrant.garantir_indices(client) == []
+    assert client.criados == []
+
+
+def test_garantir_indices_cria_so_o_que_falta() -> None:
+    client = _ClientFalso({"capitulo_num": qdrant.PayloadSchemaType.INTEGER})
+
+    assert qdrant.garantir_indices(client) == ["secao_label"]
 
 
 # --- reescrever ---------------------------------------------------------------

@@ -4,6 +4,7 @@ from enum import Enum
 import voyageai
 from fastembed.sparse.sparse_embedding_base import SparseTextEmbeddingBase
 from qdrant_client import QdrantClient
+from qdrant_client.http.exceptions import UnexpectedResponse
 from qdrant_client.models import (
     FieldCondition,
     Filter,
@@ -14,7 +15,7 @@ from qdrant_client.models import (
     SparseVector,
 )
 
-from .qdrant import COLLECTION_NAME
+from .qdrant import CAMPOS_FILTRAVEIS, COLLECTION_NAME, TIPO_PYTHON
 
 logger = logging.getLogger(__name__)
 
@@ -111,7 +112,13 @@ def search(
 # ignorada, não rejeita a entrada inteira — o filtro é um palpite do LLM sobre
 # o assunto da pergunta, e travar a busca por causa de uma chave inesperada
 # jogaria fora o resto de um palpite que ainda pode ser útil.
-_CAMPOS_FILTRO: dict[str, type] = {"capitulo_num": int, "secao_label": str}
+#
+# Derivado de `qdrant.CAMPOS_FILTRAVEIS` em vez de listado aqui: filtrar por uma
+# chave sem índice na coleção é erro 400, não busca vazia. As duas listas
+# precisam ser a mesma, então são.
+_CAMPOS_FILTRO: dict[str, type] = {
+    campo: TIPO_PYTHON[tipo] for campo, tipo in CAMPOS_FILTRAVEIS.items()
+}
 
 
 def filtro_de_secoes(secoes: list[dict]) -> Filter | None:
@@ -152,12 +159,29 @@ def buscar_com_fallback(
     resultado" para uma pergunta que o corpus respondia normalmente sem filtro
     — pior do que não ter filtrado nada. Por isso: tudo que filtra passa por
     aqui, nunca por `search(..., filtro=...)` direto.
+
+    O filtro é descartável de todo jeito que ele falhe, não só quando zera a
+    busca: se o Qdrant recusa a consulta filtrada (o caso real foi 400 por
+    índice de payload ausente), a pergunta ainda tem resposta sem filtro, e
+    perdê-la inteira seria trocar um refinamento opcional por uma falha
+    obrigatória. Um erro que não vem do filtro reaparece na segunda tentativa e
+    sobe normalmente.
     """
     filtro = filtro_de_secoes(secoes)
     if filtro is None:
         return search(query_text, client, bm25_model, mode), False
 
-    resultados = search(query_text, client, bm25_model, mode, filtro=filtro)
+    try:
+        resultados = search(query_text, client, bm25_model, mode, filtro=filtro)
+    except UnexpectedResponse:
+        logger.warning(
+            "Busca filtrada recusada pelo Qdrant (seções=%s) — refazendo sem filtro. "
+            "Se for índice de payload ausente, rode `scripts/ensure_indexes.py`.",
+            secoes,
+            exc_info=True,
+        )
+        resultados = []
+
     if resultados:
         return resultados, True
 
