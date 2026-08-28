@@ -4,6 +4,8 @@ from __future__ import annotations
 
 import streamlit as st
 
+from frontend.markdown import escapar
+
 from src.rag.retriever import SearchMode
 from src.storage import chat_history
 
@@ -51,7 +53,7 @@ def render_conversation_sidebar(user_id: int) -> None:
             col_select, col_rename, col_delete = st.columns([4, 1, 1])
             with col_select:
                 if st.button(
-                    conv["title"] or "Nova conversa",
+                    escapar(conv["title"] or "Nova conversa"),
                     key=f"conv_select_{conv['id']}",
                     use_container_width=True,
                     type="primary" if is_active else "secondary",

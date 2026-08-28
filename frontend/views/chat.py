@@ -18,6 +18,8 @@ from src.rag.retriever import SearchMode, search
 from src.rag.snapshot import snapshot
 from src.storage import advisor_state, chat_history
 
+from frontend.markdown import escapar
+
 AGENT_LABELS = {"conselheiro": "Conselheiro", "qa": "Q&A"}
 
 
@@ -31,10 +33,10 @@ def render_chunk(i: int, chunk: dict[str, Any]) -> None:
 
         text = chunk.get("text", "")
         preview = text[:400]
-        st.write(preview + ("..." if len(text) > len(preview) else ""))
+        st.markdown(escapar(preview + ("..." if len(text) > len(preview) else "")))
         if len(text) > len(preview):
             with st.expander("Ver trecho completo"):
-                st.write(text)
+                st.markdown(escapar(text))
 
 
 def render_message(m: dict[str, Any]) -> None:
@@ -45,7 +47,7 @@ def render_message(m: dict[str, Any]) -> None:
         agent = m.get("agent")
         if agent:
             st.caption(AGENT_LABELS.get(agent, agent))
-        st.markdown(m["content"])
+        st.markdown(escapar(m["content"]))
         chunks = m.get("retrieved_chunks")
         if m["role"] == "assistant" and chunks:
             with st.expander("Trechos recuperados", expanded=False):
@@ -64,6 +66,7 @@ def _render_option_chips(pergunta: Pergunta) -> str | None:
         "Ou escolha uma opção:",
         options=labels,
         selection_mode="multi" if pergunta.multipla else "single",
+        format_func=escapar,
         key=f"advisor_chips_{pergunta.id}",
     )
     if not st.button("Responder", key=f"advisor_chips_responder_{pergunta.id}") or not selecao:
@@ -122,7 +125,7 @@ def handle_new_message(prompt: str, user_id: int, client, bm25_model, history_ms
 
     chat_history.add_message(conversation_id, user_id, "user", prompt)
     with st.chat_message("user"):
-        st.markdown(prompt)
+        st.markdown(escapar(prompt))
 
     with st.chat_message("assistant"):
         if not llm_client.disponivel():
@@ -140,14 +143,14 @@ def handle_new_message(prompt: str, user_id: int, client, bm25_model, history_ms
                     resposta = qa.responder(prompt, llm_history, client, bm25_model, mode=mode)
             except Exception as e:
                 texto = f"Falha ao gerar resposta: {e}"
-                st.markdown(texto)
+                st.markdown(escapar(texto))
                 chat_history.add_message(
                     conversation_id, user_id, "assistant", texto, search_mode=mode.value
                 )
                 return
 
         st.caption(AGENT_LABELS.get(resposta.agente, resposta.agente))
-        st.markdown(resposta.texto)
+        st.markdown(escapar(resposta.texto))
         if resposta.trechos:
             with st.expander("Trechos recuperados", expanded=False):
                 for i, chunk in enumerate(resposta.trechos, 1):
