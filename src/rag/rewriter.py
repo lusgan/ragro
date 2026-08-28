@@ -14,6 +14,7 @@ custaria corretude.
 
 from __future__ import annotations
 
+import re
 from dataclasses import dataclass
 
 from src.llm import client as llm_client
@@ -69,15 +70,47 @@ def _formatar_historico(historico: list[dict]) -> str:
     return "\n".join(f"{speaker.get(m['role'], m['role'])}: {m['content']}" for m in historico)
 
 
+# Formato de `secao_label` no payload: o número da seção, com sublabel quando
+# existe — "1", "18", "4-A". O prompt acima pede capítulos e nunca explica este
+# campo, mas o schema o expõe como string livre; sem esta checagem o modelo o
+# preenche com o nome do capítulo (o `capitulo_text` do payload, literalmente),
+# e aí o filtro pede "capítulo 10 E seção chamada 'Pronaf'", casa com zero e é
+# descartado inteiro — inclusive a parte do capítulo, que estava certa.
+_FORMATO_SECAO_LABEL = re.compile(r"^\d+(?:-[A-Za-z0-9]+)?$")
+
+
 def _secoes_validas(secoes: list) -> list[dict]:
-    """Descarta qualquer capítulo fora do índice conhecido, em vez de repassar
-    um número que `retriever.filtro_de_secoes` aceitaria sem checar."""
+    """Normaliza o filtro inferido antes de ele virar `Filter` do Qdrant.
+
+    Duas regras, com destinos diferentes de propósito:
+
+    - capítulo fora do índice conhecido -> a entrada inteira cai, porque sem
+      capítulo válido não sobra nada que estreite a busca;
+    - `secao_label` fora do formato -> cai só a chave, e o capítulo sobrevive.
+      Filtrar por capítulo é o que o prompt de fato pede, e degradar para isso
+      é melhor do que perder o filtro todo por causa de um campo que o modelo
+      não tinha como preencher.
+
+    Um label bem formado mas inexistente ("99") passa por aqui e zera a busca —
+    e é `retriever.buscar_com_fallback` quem cobre isso, como cobre qualquer
+    outro palpite errado. A checagem aqui é de formato, não de existência: o
+    corpus é a única fonte sobre quais seções existem, e replicá-la num índice
+    estático seria criar uma segunda verdade que envelhece a cada reindexação.
+    """
     validas = []
     for secao in secoes or []:
         if not isinstance(secao, dict):
             continue
+
         capitulo = secao.get("capitulo_num")
         if capitulo is not None and capitulo not in CAPITULOS:
+            continue
+
+        label = secao.get("secao_label")
+        if label is not None and not _FORMATO_SECAO_LABEL.match(str(label)):
+            secao = {k: v for k, v in secao.items() if k != "secao_label"}
+
+        if not secao:
             continue
         validas.append(secao)
     return validas

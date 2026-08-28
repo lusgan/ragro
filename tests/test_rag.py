@@ -13,6 +13,8 @@ from __future__ import annotations
 from dataclasses import dataclass
 from typing import Any
 
+import pytest
+
 from qdrant_client.http.exceptions import UnexpectedResponse
 from qdrant_client.models import Filter
 
@@ -319,6 +321,70 @@ def test_reescrever_descarta_capitulo_fora_do_indice_conhecido(monkeypatch) -> N
     reescrita = rewriter.reescrever("quais as regras do capitulo 99?")
 
     assert reescrita.secoes_mcr == [{"capitulo_num": 10}]  # só o capítulo válido sobrevive
+
+
+def test_reescrever_derruba_secao_label_invalido_mas_mantem_o_capitulo(monkeypatch) -> None:
+    """O caso observado em produção, 6 vezes em 6 perguntas.
+
+    O prompt do rewriter pede capítulos e nunca explica `secao_label`, mas o
+    schema o expõe como string livre — o modelo preenchia com o nome do
+    capítulo (o `capitulo_text` do payload, literalmente). O filtro virava
+    "capítulo 10 E seção chamada 'Pronaf'", casava com zero e era descartado
+    inteiro, levando junto a parte do capítulo, que estava certa.
+    """
+    monkeypatch.setattr(
+        llm_client,
+        "gerar_json",
+        lambda *a, **k: {
+            "consulta": "quem são os beneficiários do pronaf?",
+            "secoes_mcr": [
+                {
+                    "capitulo_num": 10,
+                    "secao_label": "Programa Nacional de Fortalecimento da "
+                    "Agricultura Familiar (Pronaf)",
+                }
+            ],
+        },
+    )
+
+    reescrita = rewriter.reescrever("quem são os beneficiários do pronaf?")
+
+    assert reescrita.secoes_mcr == [{"capitulo_num": 10}]
+
+
+@pytest.mark.parametrize("label", ["1", "18", "4-A", "10"])
+def test_reescrever_preserva_secao_label_bem_formado(label: str) -> None:
+    """Formatos que existem de verdade no payload passam intactos."""
+    assert rewriter._secoes_validas([{"capitulo_num": 7, "secao_label": label}]) == [
+        {"capitulo_num": 7, "secao_label": label}
+    ]
+
+
+@pytest.mark.parametrize(
+    "label", ["Encargos Financeiros", "seção 6", "", "6.1.2", "Cap. 7"]
+)
+def test_reescrever_derruba_labels_que_nao_sao_numero_de_secao(label: str) -> None:
+    assert rewriter._secoes_validas([{"capitulo_num": 7, "secao_label": label}]) == [
+        {"capitulo_num": 7}
+    ]
+
+
+def test_reescrever_descarta_entrada_que_so_tinha_secao_label_invalido() -> None:
+    """Sem capítulo e sem label utilizável não sobra nada que estreite a busca."""
+    assert rewriter._secoes_validas([{"secao_label": "Condições Básicas"}]) == []
+
+
+def test_reescrever_label_bem_formado_inexistente_e_problema_do_fallback() -> None:
+    """A checagem aqui é de formato, não de existência.
+
+    Uma seção "99" passa e zera a busca — e é `buscar_com_fallback` quem cobre
+    isso, como cobre qualquer outro palpite errado do filtro. Validar
+    existência exigiria replicar o corpus num índice estático que envelheceria
+    a cada reindexação.
+    """
+    assert rewriter._secoes_validas([{"capitulo_num": 7, "secao_label": "99"}]) == [
+        {"capitulo_num": 7, "secao_label": "99"}
+    ]
 
 
 # --- avaliar (LLM-as-a-judge) --------------------------------------------------
