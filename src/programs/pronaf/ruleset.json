@@ -1,0 +1,4224 @@
+{
+  "fonte": "https://simuladorpronaf.mda.gov.br/",
+  "plano_safra": "2026/2027",
+  "extraido_em": "2026-08-27",
+  "metodo": "AST transpilada dos predicados show() do simulador oficial; equivalência verificada em 275.254.400 avaliações sobre 4.915.520 estados (0 divergências).",
+  "perguntas": {
+    "tipo": {
+      "texto": "Você é agricultor(a) familiar ou cooperativa?",
+      "multipla": false,
+      "opcoes": [
+        {
+          "l": "Agricultor(a) familiar — pessoa física",
+          "i": "🌾",
+          "v": "individual"
+        },
+        {
+          "l": "Cooperativa",
+          "i": "🤝",
+          "v": "cooperativa"
+        }
+      ]
+    },
+    "renda": {
+      "texto": "Qual a renda bruta anual da família?",
+      "multipla": false,
+      "opcoes": [
+        {
+          "l": "Até R$ 60 mil por ano",
+          "i": "🌱",
+          "s2": "Cerca de R$ 5 mil por mês",
+          "v": "ate60k"
+        },
+        {
+          "l": "De R$ 60 mil a R$ 150 mil por ano",
+          "i": "🌿",
+          "s2": "De R$ 5 mil a R$ 12,5 mil por mês",
+          "v": "ate150k"
+        },
+        {
+          "l": "De R$ 150 mil a R$ 500 mil por ano",
+          "i": "🌳",
+          "s2": "De R$ 12,5 mil a R$ 41,7 mil por mês",
+          "v": "ate500k"
+        },
+        {
+          "l": "De R$ 500 mil a R$ 714,5 mil (só para leite, café, frutas ou hortaliças)",
+          "i": "☕",
+          "s2": "De R$ 41,7 mil a R$ 59,5 mil por mês",
+          "v": "ate714k"
+        },
+        {
+          "l": "Nenhuma das opções acima",
+          "i": "❌",
+          "v": "nenhuma"
+        }
+      ]
+    },
+    "perfil": {
+      "texto": "Qual o seu perfil?",
+      "multipla": true,
+      "opcoes": [
+        {
+          "l": "Sou mulher agricultora",
+          "i": "👩‍🌾",
+          "v": "mulher"
+        },
+        {
+          "l": "Sou homem agricultor adulto",
+          "i": "👨‍🌾",
+          "v": "geral"
+        },
+        {
+          "l": "Sou jovem rural (16 a 29 anos)",
+          "i": "🧑",
+          "v": "jovem"
+        },
+        {
+          "l": "Sou assentado(a), indígena ou quilombola",
+          "i": "👥",
+          "v": "assentado"
+        }
+      ],
+      "somente_tipo": "individual"
+    },
+    "finalidade_pf": {
+      "texto": "Para que você precisa do crédito?",
+      "multipla": true,
+      "opcoes": [
+        {
+          "l": "Custeio da safra",
+          "i": "🌾",
+          "s": "Insumos, sementes, defensivos, mão de obra",
+          "v": "custeio"
+        },
+        {
+          "l": "Máquinas, tratores ou implementos",
+          "i": "🚜",
+          "s": "Colheitadeiras, arados, pulverizadores, irrigação…",
+          "v": "maquinas"
+        },
+        {
+          "l": "Caminhonete ou motocicleta",
+          "i": "🚗",
+          "s": "Para uso na atividade rural",
+          "v": "caminhonete"
+        },
+        {
+          "l": "Moradia rural",
+          "i": "🏠",
+          "s": "Construção ou reforma da casa na propriedade",
+          "v": "moradia"
+        },
+        {
+          "l": "Agroindústria familiar",
+          "i": "🏭",
+          "s": "Processamento, beneficiamento ou embalagem da produção",
+          "v": "agroindustria"
+        },
+        {
+          "l": "Floresta ou produção sustentável",
+          "i": "🌳",
+          "s": "Sistemas agroflorestais, extrativismo sustentável, frutíferas nativas, recomposição de mata",
+          "v": "floresta"
+        },
+        {
+          "l": "Convivência com o Semiárido",
+          "i": "🌵",
+          "s": "Cisternas, irrigação, dessalinização, sistemas produtivos adaptados à seca, infraestrutura hídrica. Somente para imóveis na área do semiárido",
+          "v": "semiarido"
+        },
+        {
+          "l": "Produção orgânica ou agroecológica",
+          "i": "🥬",
+          "s": "Transição, bioinsumos, certificação orgânica",
+          "v": "agroeco"
+        },
+        {
+          "l": "Melhoramento do rebanho",
+          "i": "🐄",
+          "s": "Matrizes, reprodutores, sêmen, embriões",
+          "v": "genetica"
+        },
+        {
+          "l": "Pronaf Azul — Pesca artesanal e aquicultura",
+          "i": "🐟",
+          "s": "Tanques, redes, barcos, equipamentos de pesca e aquicultura",
+          "v": "pesca"
+        },
+        {
+          "l": "Regularização do imóvel rural",
+          "i": "📄",
+          "s": "Documentação e registro da terra",
+          "v": "fundiario"
+        },
+        {
+          "l": "Outras melhorias na propriedade",
+          "i": "🔧",
+          "s": "Armazém, irrigação, energia solar, curral, internet…",
+          "v": "outros_invest"
+        }
+      ],
+      "somente_tipo": "individual"
+    },
+    "finalidade_coop": {
+      "texto": "Para que a cooperativa precisa do crédito?",
+      "multipla": true,
+      "opcoes": [
+        {
+          "l": "Investimento na agroindústria e infraestrutura da cooperativa",
+          "i": "🏭",
+          "s": "Implantação de agroindústrias, armazenagem, unidades centrais de apoio gerencial, equipamentos e de programas de informática, energia renovável",
+          "v": "coop_agro_invest"
+        },
+        {
+          "l": "Custeio e capital de giro da cooperativa",
+          "i": "💵",
+          "s": "Custeio do beneficiamento e industrialização, formação de estoques e serviços de apoio à comercialização",
+          "v": "coop_agro_custeio"
+        },
+        {
+          "l": "Melhoramento genético do gado dos cooperados",
+          "i": "🧬",
+          "s": "Sêmen, óvulos e embriões para a pecuária",
+          "v": "coop_genetica"
+        },
+        {
+          "l": "Máquinas e Equipamentos para Bovinocultura",
+          "i": "🐄",
+          "s": "Para atendimento aos cooperados. Tratores, tanques de resfriamento, ordenhadeiras, alimentação animal e recuperação de pastagens",
+          "v": "coop_bovino"
+        },
+        {
+          "l": "Integralização de cotas-partes",
+          "i": "📑",
+          "s": "Para sócios investirem capital na própria cooperativa",
+          "v": "coop_cotas"
+        }
+      ],
+      "somente_tipo": "cooperativa"
+    },
+    "coop_perfil": {
+      "texto": "A cooperativa se enquadra no perfil A/A-C?",
+      "multipla": false,
+      "opcoes": [
+        {
+          "l": "Sim — a cooperativa atende a todos os critérios do perfil A/A-C",
+          "i": "✊🏾",
+          "v": "coop_aac"
+        },
+        {
+          "l": "Não — cooperativa da agricultura familiar em geral",
+          "i": "🤝",
+          "v": "coop_geral"
+        }
+      ],
+      "somente_tipo": "cooperativa"
+    },
+    "organico": {
+      "texto": "Qual produção você quer financiar?",
+      "multipla": false,
+      "opcoes": [
+        {
+          "l": "Orgânica, agroecológica ou da sociobiodiversidade",
+          "i": "🥬",
+          "v": "sim"
+        },
+        {
+          "l": "Alimentos da cesta básica",
+          "i": "🍚",
+          "s": "Arroz, feijão, leite, hortaliças, ovos, peixes, mandioca, milho (até R$ 28 mil/ano), trigo, amendoim, alho, tomate, cebola, inhame, cará, batata-doce, batata-inglesa, abacaxi, banana, açaí e cacau cultivados, laranja, tangerina, ervas medicinais, aromáticas e condimentares; ovinocultura, caprinocultura e exploração extrativista ecologicamente sustentável",
+          "v": "alimentos"
+        },
+        {
+          "l": "Soja, algodão ou bovinos de corte",
+          "i": "🐂",
+          "v": "soja_corte"
+        },
+        {
+          "l": "Outros produtos",
+          "i": "🌾",
+          "s": "Demais lavouras, criações e atividades rurais não enquadradas nas outras faixas",
+          "v": "outros_custeio"
+        }
+      ],
+      "condicao": {
+        "op": "contem",
+        "campo": "finalidade",
+        "valor": "custeio"
+      }
+    },
+    "regiao": {
+      "texto": "Em qual região você mora?",
+      "multipla": false,
+      "opcoes": [
+        {
+          "l": "Norte",
+          "i": "🌿",
+          "v": "no"
+        },
+        {
+          "l": "Nordeste",
+          "i": "🌵",
+          "v": "ne"
+        },
+        {
+          "l": "Centro-Oeste",
+          "i": "🌾",
+          "v": "co"
+        },
+        {
+          "l": "Sudeste",
+          "i": "☕",
+          "v": "se"
+        },
+        {
+          "l": "Sul",
+          "i": "🌲",
+          "v": "su"
+        }
+      ],
+      "condicao": {
+        "op": "igual",
+        "arg": {
+          "op": "campo",
+          "campo": "tipo"
+        },
+        "valor": "individual"
+      }
+    }
+  },
+  "ordem_perguntas": {
+    "individual": [
+      "tipo",
+      "renda",
+      "perfil",
+      "finalidade",
+      "organico",
+      "regiao"
+    ],
+    "cooperativa": [
+      "tipo",
+      "coop_perfil",
+      "finalidade",
+      "regiao"
+    ]
+  },
+  "bancos": {
+    "nomes": {
+      "BB": "Banco do Brasil",
+      "CEF": "Caixa Econômica Federal",
+      "BNB": "Banco do Nordeste",
+      "BASA": "Banco da Amazônia",
+      "SICOOB": "Sicoob",
+      "SICREDI": "Sicredi",
+      "CRESOL": "Cresol",
+      "BANRISUL": "Banrisul",
+      "BRB": "BRB - Banco de Brasília"
+    },
+    "observacoes": {
+      "BNB_SE": "Apenas em municípios do Norte de Minas Gerais e no Espírito Santo",
+      "BRB": "Apenas para DF e GO"
+    },
+    "regra_js": "function getBancosPorLinha(grupoLabel, isCoop, regiao) { const isB = grupoLabel === 'Pronaf B'; const isAAC = grupoLabel === 'Pronaf A/A-C' || grupoLabel === 'Pronaf A e A/C'; // Pronaf A/A-C e B: apenas BB, CEF + banco regional (sem cooperativas) if (isB || isAAC) { if (regiao === 'no') return ['BB','CEF','BASA']; if (regiao === 'ne') return ['BB','CEF','BNB']; if (regiao === 'se') return ['BB','CEF','BNB_SE']; return ['BB','CEF']; } // Demais linhas: BB, CEF, cooperativas + bancos regionais if (regiao === 'no') return ['BB','CEF','BASA','SICOOB','SICREDI','CRESOL']; if (regiao === 'ne') return ['BB','CEF','BNB','SICOOB','SICREDI','CRESOL']; if (regiao === 'co') return ['BB','CEF','BASA','SICOOB','SICREDI','CRESOL','BRB']; if (regiao === 'se') return ['BB','CEF','BNB_SE','SICOOB','SICREDI','CRESOL']; // BNB em MG Norte e ES if (regiao === 'su') { // BRDE: Sul + linhas de investimento (não custeio) const isCusteioLine = grupoLabel.includes('Faixa') || grupoLabel.includes('Industrialização') || grupoLabel.includes('Custeio') || grupoLabel==='Pronaf B'; return isCusteioLine ? ['BB','CEF','SICOOB','SICREDI','CRESOL','BANRISUL'] : ['BB','CEF','SICOOB','SICREDI','CRESOL','BANRISUL','BRDE']; } return ['BB','CEF','SICOOB','SICREDI','CRESOL']; }"
+  },
+  "municipios_sudene": {
+    "mg": [
+      "Aimorés",
+      "Almenara",
+      "Alpercata",
+      "Alvarenga",
+      "Angelândia",
+      "Araçuaí",
+      "Aricanduva",
+      "Arinos",
+      "Ataléia",
+      "Açucena",
+      "Bandeira",
+      "Berilo",
+      "Berizal",
+      "Bertópolis",
+      "Bocaiúva",
+      "Bonfinópolis de Minas",
+      "Bonito de Minas",
+      "Botumirim",
+      "Brasília de Minas",
+      "Braúnas",
+      "Buritizeiro",
+      "Cachoeira de Pajeú",
+      "Campanário",
+      "Campo Azul",
+      "Cantagalo",
+      "Capelinha",
+      "Capitão Andrade",
+      "Capitão Enéas",
+      "Caraí",
+      "Carbonita",
+      "Carlos Chagas",
+      "Carmésia",
+      "Catuji",
+      "Catuti",
+      "Central de Minas",
+      "Chapada Gaúcha",
+      "Chapada do Norte",
+      "Claro dos Poções",
+      "Coluna",
+      "Comercinho",
+      "Conselheiro Pena",
+      "Coração de Jesus",
+      "Coroaci",
+      "Coronel Murta",
+      "Couto de Magalhães de Minas",
+      "Cristália",
+      "Crisólita",
+      "Cuparaque",
+      "Curral de Dentro",
+      "Cônego Marinho",
+      "Datas",
+      "Diamantina",
+      "Divino das Laranjeiras",
+      "Divinolândia de Minas",
+      "Divisa Alegre",
+      "Divisópolis",
+      "Dom Bosco",
+      "Dores de Guanhães",
+      "Engenheiro Caldas",
+      "Engenheiro Navarro",
+      "Espinosa",
+      "Felisburgo",
+      "Felício dos Santos",
+      "Fernandes Tourinho",
+      "Formoso",
+      "Francisco Badaró",
+      "Francisco Dumont",
+      "Francisco Sá",
+      "Franciscópolis",
+      "Frei Gaspar",
+      "Frei Inocêncio",
+      "Frei Lagonegro",
+      "Fronteira dos Vales",
+      "Fruta de Leite",
+      "Galiléia",
+      "Gameleiras",
+      "Glaucilândia",
+      "Goiabeira",
+      "Gonzaga",
+      "Governador Valadares",
+      "Grão Mogol",
+      "Guanhães",
+      "Guaraciama",
+      "Ibiaí",
+      "Ibiracatu",
+      "Icaraí de Minas",
+      "Imbé de Minas",
+      "Indaiabira",
+      "Inhapim",
+      "Itabirinha",
+      "Itacambira",
+      "Itacarambi",
+      "Itaipé",
+      "Itamarandiba",
+      "Itambacuri",
+      "Itanhomi",
+      "Itaobim",
+      "Itinga",
+      "Itueta",
+      "Jacinto",
+      "Jampruca",
+      "Janaúba",
+      "Januária",
+      "Japonvar",
+      "Jaíba",
+      "Jenipapo de Minas",
+      "Jequitaí",
+      "Jequitinhonha",
+      "Joaíma",
+      "Jordânia",
+      "Josenópolis",
+      "José Gonçalves de Minas",
+      "José Raydan",
+      "Juramento",
+      "Juvenília",
+      "Ladainha",
+      "Lagoa dos Patos",
+      "Lassance",
+      "Leme do Prado",
+      "Lontra",
+      "Luislândia",
+      "Machacalis",
+      "Malacacheta",
+      "Mamonas",
+      "Manga",
+      "Mantena",
+      "Marilac",
+      "Mata Verde",
+      "Materlândia",
+      "Mathias Lobato",
+      "Matias Cardoso",
+      "Mato Verde",
+      "Medina",
+      "Mendes Pimentel",
+      "Minas Novas",
+      "Mirabela",
+      "Miravânia",
+      "Montalvânia",
+      "Monte Azul",
+      "Monte Formoso",
+      "Montes Claros",
+      "Montezuma",
+      "Mutum",
+      "Nacip Raydan",
+      "Nanuque",
+      "Naque",
+      "Natalândia",
+      "Ninheira",
+      "Nova Belém",
+      "Nova Módica",
+      "Nova Porteirinha",
+      "Novo Cruzeiro",
+      "Novo Oriente de Minas",
+      "Novorizonte",
+      "Olhos-d'Água",
+      "Ouro Verde de Minas",
+      "Padre Carvalho",
+      "Padre Paraíso",
+      "Pai Pedro",
+      "Palmópolis",
+      "Patis",
+      "Paulistas",
+      "Pavão",
+      "Pedra Azul",
+      "Pedras de Maria da Cruz",
+      "Periquito",
+      "Pescador",
+      "Peçanha",
+      "Piedade de Caratinga",
+      "Pintópolis",
+      "Pirapora",
+      "Ponto Chique",
+      "Ponto dos Volantes",
+      "Porteirinha",
+      "Poté",
+      "Resplendor",
+      "Riachinho",
+      "Riacho dos Machados",
+      "Rio Pardo de Minas",
+      "Rio Vermelho",
+      "Rio do Prado",
+      "Rubelita",
+      "Rubim",
+      "Sabinópolis",
+      "Salinas",
+      "Salto da Divisa",
+      "Santa Bárbara do Leste",
+      "Santa Cruz de Salinas",
+      "Santa Efigênia de Minas",
+      "Santa Fé de Minas",
+      "Santa Helena de Minas",
+      "Santa Maria do Salto",
+      "Santa Maria do Suaçuí",
+      "Santa Rita de Minas",
+      "Santa Rita do Itueto",
+      "Santo Antônio do Itambé",
+      "Santo Antônio do Jacinto",
+      "Santo Antônio do Retiro",
+      "Sardoá",
+      "Senador Modestino Gonçalves",
+      "Senhora do Porto",
+      "Serra Azul de Minas",
+      "Serra dos Aimorés",
+      "Serranópolis de Minas",
+      "Serro",
+      "Setubinha",
+      "Sobrália",
+      "São Domingos das Dores",
+      "São Francisco",
+      "São Félix de Minas",
+      "São Geraldo da Piedade",
+      "São Geraldo do Baixio",
+      "São Gonçalo do Rio Preto",
+      "São José da Safira",
+      "São José do Divino",
+      "São José do Jacuri",
+      "São João Evangelista",
+      "São João da Lagoa",
+      "São João da Ponte",
+      "São João das Missões",
+      "São João do Manteninha",
+      "São João do Pacuí",
+      "São João do Paraíso",
+      "São Pedro do Suaçuí",
+      "São Romão",
+      "São Sebastião do Anta",
+      "São Sebastião do Maranhão",
+      "Taiobeiras",
+      "Taparuba",
+      "Tarumirim",
+      "Teófilo Otoni",
+      "Tumiritinga",
+      "Turmalina",
+      "Ubaporanga",
+      "Ubaí",
+      "Umburatiba",
+      "Uruana de Minas",
+      "Urucuia",
+      "Vargem Grande do Rio Pardo",
+      "Varzelândia",
+      "Verdelândia",
+      "Veredinha",
+      "Virgem da Lapa",
+      "Virginópolis",
+      "Virgolândia",
+      "Várzea da Palma",
+      "Água Boa",
+      "Águas Formosas",
+      "Águas Vermelhas"
+    ],
+    "es": [
+      "Alto Rio Novo",
+      "Aracruz",
+      "Baixo Guandu",
+      "Barra de São Francisco",
+      "Boa Esperança",
+      "Colatina",
+      "Conceição da Barra",
+      "Ecoporanga",
+      "Governador Lindenberg",
+      "Itaguaçu",
+      "Itarana",
+      "Jaguaré",
+      "Linhares",
+      "Mantenópolis",
+      "Marilândia",
+      "Montanha",
+      "Mucurici",
+      "Nova Venécia",
+      "Pancas",
+      "Pedro Canário",
+      "Pinheiros",
+      "Ponto Belo",
+      "Rio Bananal",
+      "Sooretama",
+      "São Domingos do Norte",
+      "São Gabriel da Palha",
+      "São Mateus",
+      "Vila Pavão",
+      "Vila Valério",
+      "Água Doce do Norte",
+      "Águia Branca"
+    ]
+  },
+  "linhas": [
+    {
+      "id": "b_custeio_org",
+      "nome": "Pronaf B – Custeio",
+      "grupo_finalidade": "Custeio da safra",
+      "grupo_pronaf": "Pronaf B",
+      "limite": {
+        "tipo": "fixo",
+        "valor": "20 mil"
+      },
+      "limite_mil_reais": {
+        "tipo": "fixo",
+        "valor": 20
+      },
+      "juros_aa_pct": 0.5,
+      "prazo_anos": 2,
+      "carencia_anos": 0,
+      "prazo_texto": "2 anos",
+      "carencia_texto": "—",
+      "bonus_adimplencia": {
+        "tipo": "por_regiao",
+        "valor": {
+          "no": "Sim — 25% a 40% (Norte e Nordeste)",
+          "ne": "Sim — 25% a 40% (Norte e Nordeste)",
+          "co": "Sim — 25% (Centro-Oeste)",
+          "se": "Não (Sul e Sudeste)",
+          "su": "Não (Sul e Sudeste)"
+        },
+        "depende_renda": false
+      },
+      "observacao": {
+        "tipo": "fixo",
+        "valor": "R$ 12 mil com microcrédito produtivo orientado ou R$ 4 mil sem. Bônus de adimplência para quem paga em dia."
+      },
+      "destaque": true,
+      "escopo": "individual",
+      "elegibilidade_js": "s=>s.renda==='ate60k'&&fin(s,'custeio')&&s.organico==='sim'",
+      "elegibilidade": {
+        "op": "e",
+        "args": [
+          {
+            "op": "e",
+            "args": [
+              {
+                "op": "igual",
+                "arg": {
+                  "op": "campo",
+                  "campo": "renda"
+                },
+                "valor": "ate60k"
+              },
+              {
+                "op": "contem",
+                "campo": "finalidade",
+                "valor": "custeio"
+              }
+            ]
+          },
+          {
+            "op": "igual",
+            "arg": {
+              "op": "campo",
+              "campo": "organico"
+            },
+            "valor": "sim"
+          }
+        ]
+      }
+    },
+    {
+      "id": "mulher_custeio_org",
+      "nome": "Pronaf Mulher – Custeio",
+      "grupo_finalidade": "Custeio da safra",
+      "grupo_pronaf": "Pronaf B",
+      "limite": {
+        "tipo": "fixo",
+        "valor": "8 mil"
+      },
+      "limite_mil_reais": {
+        "tipo": "fixo",
+        "valor": 8
+      },
+      "juros_aa_pct": 0.5,
+      "prazo_anos": 2,
+      "carencia_anos": 0,
+      "prazo_texto": "2 anos",
+      "carencia_texto": "—",
+      "bonus_adimplencia": {
+        "tipo": "fixo",
+        "valor": "Não"
+      },
+      "observacao": {
+        "tipo": "fixo",
+        "valor": null
+      },
+      "destaque": true,
+      "escopo": "individual",
+      "elegibilidade_js": "s=>perf(s,'mulher')&&s.renda==='ate60k'&&fin(s,'custeio')&&s.organico==='sim'",
+      "elegibilidade": {
+        "op": "e",
+        "args": [
+          {
+            "op": "e",
+            "args": [
+              {
+                "op": "e",
+                "args": [
+                  {
+                    "op": "contem",
+                    "campo": "perfil",
+                    "valor": "mulher"
+                  },
+                  {
+                    "op": "igual",
+                    "arg": {
+                      "op": "campo",
+                      "campo": "renda"
+                    },
+                    "valor": "ate60k"
+                  }
+                ]
+              },
+              {
+                "op": "contem",
+                "campo": "finalidade",
+                "valor": "custeio"
+              }
+            ]
+          },
+          {
+            "op": "igual",
+            "arg": {
+              "op": "campo",
+              "campo": "organico"
+            },
+            "valor": "sim"
+          }
+        ]
+      }
+    },
+    {
+      "id": "jovem_custeio_org",
+      "nome": "Pronaf Jovem – Custeio (orgânico/agroecológico)",
+      "grupo_finalidade": "Custeio da safra",
+      "grupo_pronaf": "Pronaf B",
+      "limite": {
+        "tipo": "fixo",
+        "valor": "20 mil"
+      },
+      "limite_mil_reais": {
+        "tipo": "fixo",
+        "valor": 20
+      },
+      "juros_aa_pct": 0.5,
+      "prazo_anos": 2,
+      "carencia_anos": 0,
+      "prazo_texto": "2 anos",
+      "carencia_texto": "—",
+      "bonus_adimplencia": {
+        "tipo": "fixo",
+        "valor": "Não"
+      },
+      "observacao": {
+        "tipo": "fixo",
+        "valor": "Limite de R$ 20 mil para jovem que financia produção orgânica ou agroecológica no custeio. Sem bônus de adimplência neste sublimite."
+      },
+      "destaque": true,
+      "escopo": "individual",
+      "elegibilidade_js": "s=>perf(s,'jovem')&&s.renda==='ate60k'&&fin(s,'custeio')&&s.organico==='sim'",
+      "elegibilidade": {
+        "op": "e",
+        "args": [
+          {
+            "op": "e",
+            "args": [
+              {
+                "op": "e",
+                "args": [
+                  {
+                    "op": "contem",
+                    "campo": "perfil",
+                    "valor": "jovem"
+                  },
+                  {
+                    "op": "igual",
+                    "arg": {
+                      "op": "campo",
+                      "campo": "renda"
+                    },
+                    "valor": "ate60k"
+                  }
+                ]
+              },
+              {
+                "op": "contem",
+                "campo": "finalidade",
+                "valor": "custeio"
+              }
+            ]
+          },
+          {
+            "op": "igual",
+            "arg": {
+              "op": "campo",
+              "campo": "organico"
+            },
+            "valor": "sim"
+          }
+        ]
+      }
+    },
+    {
+      "id": "aac_moradia",
+      "nome": "Pronaf A/A-C – Habitação",
+      "grupo_finalidade": "Moradia rural",
+      "grupo_pronaf": "Pronaf A/A-C",
+      "limite": {
+        "tipo": "fixo",
+        "valor": "11 mil"
+      },
+      "limite_mil_reais": {
+        "tipo": "fixo",
+        "valor": 11
+      },
+      "juros_aa_pct": 0.5,
+      "prazo_anos": 5,
+      "carencia_anos": 0,
+      "prazo_texto": "5 anos",
+      "carencia_texto": "—",
+      "bonus_adimplencia": {
+        "tipo": "fixo",
+        "valor": "Sim — 40%"
+      },
+      "observacao": {
+        "tipo": "fixo",
+        "valor": "Sublimite específico de R$ 11 mil para habitação rural, para assentados, indígenas e quilombolas. Parte do limite de investimento Pronaf A/A-C."
+      },
+      "destaque": true,
+      "escopo": "individual",
+      "elegibilidade_js": "s=>perf(s,'assentado')&&fin(s,'moradia')",
+      "elegibilidade": {
+        "op": "e",
+        "args": [
+          {
+            "op": "contem",
+            "campo": "perfil",
+            "valor": "assentado"
+          },
+          {
+            "op": "contem",
+            "campo": "finalidade",
+            "valor": "moradia"
+          }
+        ]
+      }
+    },
+    {
+      "id": "aac_custeio_org",
+      "nome": "Pronaf A/A-C – Custeio",
+      "grupo_finalidade": "Custeio da safra",
+      "grupo_pronaf": "Pronaf A/A-C",
+      "limite": {
+        "tipo": "fixo",
+        "valor": "22 mil"
+      },
+      "limite_mil_reais": {
+        "tipo": "fixo",
+        "valor": 22
+      },
+      "juros_aa_pct": 1.5,
+      "prazo_anos": 1.5,
+      "carencia_anos": 0,
+      "prazo_texto": "1 a 2 anos",
+      "carencia_texto": "—",
+      "bonus_adimplencia": {
+        "tipo": "fixo",
+        "valor": "Não"
+      },
+      "observacao": {
+        "tipo": "fixo",
+        "valor": "Exclusivo para assentados, indígenas e quilombolas. Sem bônus no custeio."
+      },
+      "destaque": true,
+      "escopo": "individual",
+      "elegibilidade_js": "s=>perf(s,'assentado')&&fin(s,'custeio')&&s.organico==='sim'",
+      "elegibilidade": {
+        "op": "e",
+        "args": [
+          {
+            "op": "e",
+            "args": [
+              {
+                "op": "contem",
+                "campo": "perfil",
+                "valor": "assentado"
+              },
+              {
+                "op": "contem",
+                "campo": "finalidade",
+                "valor": "custeio"
+              }
+            ]
+          },
+          {
+            "op": "igual",
+            "arg": {
+              "op": "campo",
+              "campo": "organico"
+            },
+            "valor": "sim"
+          }
+        ]
+      }
+    },
+    {
+      "id": "custeio_f3",
+      "nome": "Pronaf Custeio – Faixa III",
+      "grupo_finalidade": "Custeio da safra",
+      "grupo_pronaf": "Pronaf V – Faixa III",
+      "limite": {
+        "tipo": "fixo",
+        "valor": "250 mil"
+      },
+      "limite_mil_reais": {
+        "tipo": "fixo",
+        "valor": 250
+      },
+      "juros_aa_pct": 1,
+      "prazo_anos": 3,
+      "carencia_anos": 0,
+      "prazo_texto": "11 meses a 3 anos, dependendo do produto",
+      "carencia_texto": "—",
+      "bonus_adimplencia": {
+        "tipo": "fixo",
+        "valor": "—"
+      },
+      "observacao": {
+        "tipo": "fixo",
+        "valor": "Menor taxa do custeio. Para orgânicos, agroecológicos e produtos da sociobiodiversidade."
+      },
+      "destaque": true,
+      "escopo": "individual",
+      "elegibilidade_js": "s=>fin(s,'custeio')&&s.organico==='sim'",
+      "elegibilidade": {
+        "op": "e",
+        "args": [
+          {
+            "op": "contem",
+            "campo": "finalidade",
+            "valor": "custeio"
+          },
+          {
+            "op": "igual",
+            "arg": {
+              "op": "campo",
+              "campo": "organico"
+            },
+            "valor": "sim"
+          }
+        ]
+      }
+    },
+    {
+      "id": "b_custeio",
+      "nome": "Pronaf B – Custeio",
+      "grupo_finalidade": "Custeio da safra",
+      "grupo_pronaf": "Pronaf B",
+      "limite": {
+        "tipo": "fixo",
+        "valor": "12 mil"
+      },
+      "limite_mil_reais": {
+        "tipo": "fixo",
+        "valor": 12
+      },
+      "juros_aa_pct": 0.5,
+      "prazo_anos": 2,
+      "carencia_anos": 0,
+      "prazo_texto": "2 anos",
+      "carencia_texto": "—",
+      "bonus_adimplencia": {
+        "tipo": "por_regiao",
+        "valor": {
+          "no": "Sim — 25% a 40% (Norte e Nordeste)",
+          "ne": "Sim — 25% a 40% (Norte e Nordeste)",
+          "co": "Sim — 25% (Centro-Oeste)",
+          "se": "Não (Sul e Sudeste)",
+          "su": "Não (Sul e Sudeste)"
+        },
+        "depende_renda": false
+      },
+      "observacao": {
+        "tipo": "fixo",
+        "valor": "R$ 12 mil com microcrédito produtivo orientado ou R$ 4 mil sem."
+      },
+      "destaque": true,
+      "escopo": "individual",
+      "elegibilidade_js": "s=>s.renda==='ate60k'&&fin(s,'custeio')&&s.organico!=='sim'",
+      "elegibilidade": {
+        "op": "e",
+        "args": [
+          {
+            "op": "e",
+            "args": [
+              {
+                "op": "igual",
+                "arg": {
+                  "op": "campo",
+                  "campo": "renda"
+                },
+                "valor": "ate60k"
+              },
+              {
+                "op": "contem",
+                "campo": "finalidade",
+                "valor": "custeio"
+              }
+            ]
+          },
+          {
+            "op": "diferente",
+            "arg": {
+              "op": "campo",
+              "campo": "organico"
+            },
+            "valor": "sim"
+          }
+        ]
+      }
+    },
+    {
+      "id": "mulher_custeio",
+      "nome": "Pronaf Mulher – Custeio",
+      "grupo_finalidade": "Custeio da safra",
+      "grupo_pronaf": "Pronaf B",
+      "limite": {
+        "tipo": "fixo",
+        "valor": "8 mil"
+      },
+      "limite_mil_reais": {
+        "tipo": "fixo",
+        "valor": 8
+      },
+      "juros_aa_pct": 0.5,
+      "prazo_anos": 2,
+      "carencia_anos": 0,
+      "prazo_texto": "2 anos",
+      "carencia_texto": "—",
+      "bonus_adimplencia": {
+        "tipo": "fixo",
+        "valor": "Não"
+      },
+      "observacao": {
+        "tipo": "fixo",
+        "valor": null
+      },
+      "destaque": true,
+      "escopo": "individual",
+      "elegibilidade_js": "s=>perf(s,'mulher')&&s.renda==='ate60k'&&fin(s,'custeio')&&s.organico!=='sim'",
+      "elegibilidade": {
+        "op": "e",
+        "args": [
+          {
+            "op": "e",
+            "args": [
+              {
+                "op": "e",
+                "args": [
+                  {
+                    "op": "contem",
+                    "campo": "perfil",
+                    "valor": "mulher"
+                  },
+                  {
+                    "op": "igual",
+                    "arg": {
+                      "op": "campo",
+                      "campo": "renda"
+                    },
+                    "valor": "ate60k"
+                  }
+                ]
+              },
+              {
+                "op": "contem",
+                "campo": "finalidade",
+                "valor": "custeio"
+              }
+            ]
+          },
+          {
+            "op": "diferente",
+            "arg": {
+              "op": "campo",
+              "campo": "organico"
+            },
+            "valor": "sim"
+          }
+        ]
+      }
+    },
+    {
+      "id": "jovem_custeio",
+      "nome": "Pronaf Jovem – Custeio",
+      "grupo_finalidade": "Custeio da safra",
+      "grupo_pronaf": "Pronaf B",
+      "limite": {
+        "tipo": "fixo",
+        "valor": "16 mil"
+      },
+      "limite_mil_reais": {
+        "tipo": "fixo",
+        "valor": 16
+      },
+      "juros_aa_pct": 0.5,
+      "prazo_anos": 2,
+      "carencia_anos": 0,
+      "prazo_texto": "2 anos",
+      "carencia_texto": "—",
+      "bonus_adimplencia": {
+        "tipo": "fixo",
+        "valor": "Não"
+      },
+      "observacao": {
+        "tipo": "fixo",
+        "valor": "Valor para dois jovens. Sem bônus de adimplência neste sublimite."
+      },
+      "destaque": true,
+      "escopo": "individual",
+      "elegibilidade_js": "s=>perf(s,'jovem')&&s.renda==='ate60k'&&fin(s,'custeio')&&s.organico!=='sim'",
+      "elegibilidade": {
+        "op": "e",
+        "args": [
+          {
+            "op": "e",
+            "args": [
+              {
+                "op": "e",
+                "args": [
+                  {
+                    "op": "contem",
+                    "campo": "perfil",
+                    "valor": "jovem"
+                  },
+                  {
+                    "op": "igual",
+                    "arg": {
+                      "op": "campo",
+                      "campo": "renda"
+                    },
+                    "valor": "ate60k"
+                  }
+                ]
+              },
+              {
+                "op": "contem",
+                "campo": "finalidade",
+                "valor": "custeio"
+              }
+            ]
+          },
+          {
+            "op": "diferente",
+            "arg": {
+              "op": "campo",
+              "campo": "organico"
+            },
+            "valor": "sim"
+          }
+        ]
+      }
+    },
+    {
+      "id": "aac_custeio",
+      "nome": "Pronaf A/A-C – Custeio",
+      "grupo_finalidade": "Custeio da safra",
+      "grupo_pronaf": "Pronaf A/A-C",
+      "limite": {
+        "tipo": "fixo",
+        "valor": "22 mil"
+      },
+      "limite_mil_reais": {
+        "tipo": "fixo",
+        "valor": 22
+      },
+      "juros_aa_pct": 1.5,
+      "prazo_anos": 1.5,
+      "carencia_anos": 0,
+      "prazo_texto": "1 a 2 anos",
+      "carencia_texto": "—",
+      "bonus_adimplencia": {
+        "tipo": "fixo",
+        "valor": "Não"
+      },
+      "observacao": {
+        "tipo": "fixo",
+        "valor": "Exclusivo para assentados, indígenas e quilombolas. Sem bônus no custeio."
+      },
+      "destaque": true,
+      "escopo": "individual",
+      "elegibilidade_js": "s=>perf(s,'assentado')&&fin(s,'custeio')&&s.organico==='nao'",
+      "elegibilidade": {
+        "op": "e",
+        "args": [
+          {
+            "op": "e",
+            "args": [
+              {
+                "op": "contem",
+                "campo": "perfil",
+                "valor": "assentado"
+              },
+              {
+                "op": "contem",
+                "campo": "finalidade",
+                "valor": "custeio"
+              }
+            ]
+          },
+          {
+            "op": "igual",
+            "arg": {
+              "op": "campo",
+              "campo": "organico"
+            },
+            "valor": "nao"
+          }
+        ]
+      }
+    },
+    {
+      "id": "custeio_f1",
+      "nome": "Pronaf Custeio – Faixa I (alimentos básicos)",
+      "grupo_finalidade": "Custeio da safra",
+      "grupo_pronaf": "Pronaf V – Faixa I",
+      "limite": {
+        "tipo": "fixo",
+        "valor": "250 mil"
+      },
+      "limite_mil_reais": {
+        "tipo": "fixo",
+        "valor": 250
+      },
+      "juros_aa_pct": 2,
+      "prazo_anos": 3,
+      "carencia_anos": 0,
+      "prazo_texto": "11 meses a 3 anos, dependendo do produto",
+      "carencia_texto": "—",
+      "bonus_adimplencia": {
+        "tipo": "fixo",
+        "valor": "—"
+      },
+      "observacao": {
+        "tipo": "fixo",
+        "valor": "Faixa I — Alimentos básicos: arroz, feijão, mandioca, milho (até R$ 28 mil/ano), trigo, amendoim, alho, tomate, cebola, batata, inhame, abacaxi, banana, laranja, açaí e cacau cultivados, olerícolas, ervas medicinais e condimentares; apicultura, bovinocultura de leite, avicultura de postura, aquicultura, pesca, ovinocultura, caprinocultura e extrativismo sustentável. Taxa de 2% ao ano — a menor do custeio."
+      },
+      "destaque": true,
+      "escopo": "individual",
+      "elegibilidade_js": "s=>fin(s,'custeio')&&s.organico==='alimentos'||s.producao==='alimentos'",
+      "elegibilidade": {
+        "op": "ou",
+        "args": [
+          {
+            "op": "e",
+            "args": [
+              {
+                "op": "contem",
+                "campo": "finalidade",
+                "valor": "custeio"
+              },
+              {
+                "op": "igual",
+                "arg": {
+                  "op": "campo",
+                  "campo": "organico"
+                },
+                "valor": "alimentos"
+              }
+            ]
+          },
+          {
+            "op": "igual",
+            "arg": {
+              "op": "campo",
+              "campo": "producao"
+            },
+            "valor": "alimentos"
+          }
+        ]
+      }
+    },
+    {
+      "id": "custeio_f4",
+      "nome": "Pronaf Custeio – Faixa IV",
+      "grupo_finalidade": "Custeio da safra",
+      "grupo_pronaf": "Pronaf V – Faixa IV",
+      "limite": {
+        "tipo": "fixo",
+        "valor": "250 mil"
+      },
+      "limite_mil_reais": {
+        "tipo": "fixo",
+        "valor": 250
+      },
+      "juros_aa_pct": 7.5,
+      "prazo_anos": 0.9166666666666666,
+      "carencia_anos": 0,
+      "prazo_texto": "11 meses",
+      "carencia_texto": "—",
+      "bonus_adimplencia": {
+        "tipo": "fixo",
+        "valor": "—"
+      },
+      "observacao": {
+        "tipo": "fixo",
+        "valor": "Soja, algodão e bovinos de corte."
+      },
+      "destaque": false,
+      "escopo": "individual",
+      "elegibilidade_js": "s=>fin(s,'custeio')&&s.organico==='soja_corte'||s.producao==='soja_corte'",
+      "elegibilidade": {
+        "op": "ou",
+        "args": [
+          {
+            "op": "e",
+            "args": [
+              {
+                "op": "contem",
+                "campo": "finalidade",
+                "valor": "custeio"
+              },
+              {
+                "op": "igual",
+                "arg": {
+                  "op": "campo",
+                  "campo": "organico"
+                },
+                "valor": "soja_corte"
+              }
+            ]
+          },
+          {
+            "op": "igual",
+            "arg": {
+              "op": "campo",
+              "campo": "producao"
+            },
+            "valor": "soja_corte"
+          }
+        ]
+      }
+    },
+    {
+      "id": "custeio_f2",
+      "nome": "Pronaf Custeio – Faixa II",
+      "grupo_finalidade": "Custeio da safra",
+      "grupo_pronaf": "Pronaf V – Faixa II",
+      "limite": {
+        "tipo": "fixo",
+        "valor": "250 mil"
+      },
+      "limite_mil_reais": {
+        "tipo": "fixo",
+        "valor": 250
+      },
+      "juros_aa_pct": 5.5,
+      "prazo_anos": 3,
+      "carencia_anos": 0,
+      "prazo_texto": "11 meses a 3 anos, dependendo do produto",
+      "carencia_texto": "—",
+      "bonus_adimplencia": {
+        "tipo": "fixo",
+        "valor": "—"
+      },
+      "observacao": {
+        "tipo": "fixo",
+        "valor": "Demais produtos agropecuários."
+      },
+      "destaque": false,
+      "escopo": "individual",
+      "elegibilidade_js": "s=>fin(s,'custeio')&&s.organico==='outros_custeio'||s.producao==='outros_custeio'",
+      "elegibilidade": {
+        "op": "ou",
+        "args": [
+          {
+            "op": "e",
+            "args": [
+              {
+                "op": "contem",
+                "campo": "finalidade",
+                "valor": "custeio"
+              },
+              {
+                "op": "igual",
+                "arg": {
+                  "op": "campo",
+                  "campo": "organico"
+                },
+                "valor": "outros_custeio"
+              }
+            ]
+          },
+          {
+            "op": "igual",
+            "arg": {
+              "op": "campo",
+              "campo": "producao"
+            },
+            "valor": "outros_custeio"
+          }
+        ]
+      }
+    },
+    {
+      "id": "b_investimento_amplo",
+      "nome": "Pronaf B – Investimento",
+      "grupo_finalidade": "Investimento amplo (A/B)",
+      "grupo_pronaf": "Pronaf B",
+      "limite": {
+        "tipo": "fixo",
+        "valor": "12 mil (acumulado por perfil)"
+      },
+      "limite_mil_reais": {
+        "tipo": "fixo",
+        "valor": 12
+      },
+      "juros_aa_pct": 0.5,
+      "prazo_anos": 3,
+      "carencia_anos": 0,
+      "prazo_texto": "3 anos",
+      "carencia_texto": "—",
+      "bonus_adimplencia": {
+        "tipo": "por_regiao",
+        "valor": {
+          "no": "Sim — 25% a 40% (Norte e Nordeste)",
+          "ne": "Sim — 25% a 40% (Norte e Nordeste)",
+          "co": "Sim — 25% (Centro-Oeste)",
+          "se": "Não (Sul e Sudeste)",
+          "su": "Não (Sul e Sudeste)"
+        },
+        "depende_renda": false
+      },
+      "observacao": {
+        "tipo": "por_regiao",
+        "valor": {
+          "no": "Cobre praticamente qualquer investimento produtivo na propriedade. Teto máximo da família: R$ 74 mil. Bônus de 40% válido para operações de até R$ 36 mil.",
+          "ne": "Cobre praticamente qualquer investimento produtivo na propriedade. Teto máximo da família: R$ 74 mil. Bônus de 40% válido para operações de até R$ 36 mil.",
+          "co": "Cobre praticamente qualquer investimento produtivo na propriedade. Teto máximo da família: R$ 74 mil. Bônus de 25% válido para operações de até R$ 36 mil.",
+          "se": "Cobre praticamente qualquer investimento produtivo na propriedade. Teto máximo da família: R$ 74 mil. Bônus de 25% válido para operações de até R$ 36 mil.",
+          "su": "Cobre praticamente qualquer investimento produtivo na propriedade. Teto máximo da família: R$ 74 mil. Bônus de 25% válido para operações de até R$ 36 mil."
+        },
+        "depende_renda": false
+      },
+      "destaque": true,
+      "escopo": "individual",
+      "elegibilidade_js": "s=>s.renda==='ate60k'&&temNaoCusteio(s)&&!fin(s,'caminhonete')&&!fin(s,'moradia')",
+      "elegibilidade": {
+        "op": "e",
+        "args": [
+          {
+            "op": "e",
+            "args": [
+              {
+                "op": "e",
+                "args": [
+                  {
+                    "op": "igual",
+                    "arg": {
+                      "op": "campo",
+                      "campo": "renda"
+                    },
+                    "valor": "ate60k"
+                  },
+                  {
+                    "op": "tem_finalidade_alem_de",
+                    "valor": "custeio"
+                  }
+                ]
+              },
+              {
+                "op": "nao",
+                "arg": {
+                  "op": "contem",
+                  "campo": "finalidade",
+                  "valor": "caminhonete"
+                }
+              }
+            ]
+          },
+          {
+            "op": "nao",
+            "arg": {
+              "op": "contem",
+              "campo": "finalidade",
+              "valor": "moradia"
+            }
+          }
+        ]
+      }
+    },
+    {
+      "id": "aac_investimento_amplo",
+      "nome": "Pronaf A/A-C – Investimento",
+      "grupo_finalidade": "Investimento amplo (A/B)",
+      "grupo_pronaf": "Pronaf A/A-C",
+      "limite": {
+        "tipo": "fixo",
+        "valor": "55 mil"
+      },
+      "limite_mil_reais": {
+        "tipo": "fixo",
+        "valor": 55
+      },
+      "juros_aa_pct": 0.5,
+      "prazo_anos": 10,
+      "carencia_anos": 3,
+      "prazo_texto": "10 anos",
+      "carencia_texto": "3 anos",
+      "bonus_adimplencia": {
+        "tipo": "fixo",
+        "valor": "Sim — 40%"
+      },
+      "observacao": {
+        "tipo": "fixo",
+        "valor": "A menor taxa do PRONAF. Exclusiva para assentados, indígenas e quilombolas. Pode ser acessada simultaneamente ao limite do Pronaf B."
+      },
+      "destaque": true,
+      "escopo": "individual",
+      "elegibilidade_js": "s=>perf(s,'assentado')&&temNaoCusteio(s)",
+      "elegibilidade": {
+        "op": "e",
+        "args": [
+          {
+            "op": "contem",
+            "campo": "perfil",
+            "valor": "assentado"
+          },
+          {
+            "op": "tem_finalidade_alem_de",
+            "valor": "custeio"
+          }
+        ]
+      }
+    },
+    {
+      "id": "maisa_maq_150",
+      "nome": "Pronaf Mais Alimentos – Máquinas (juros reduzidos)",
+      "grupo_finalidade": "Máquinas, tratores ou implementos",
+      "grupo_pronaf": "Pronaf Mais Alimentos",
+      "limite": {
+        "tipo": "fixo",
+        "valor": "120 mil"
+      },
+      "limite_mil_reais": {
+        "tipo": "fixo",
+        "valor": 120
+      },
+      "juros_aa_pct": 1.5,
+      "prazo_anos": 8,
+      "carencia_anos": 1,
+      "prazo_texto": "7 a 10 anos",
+      "carencia_texto": "1 ano",
+      "bonus_adimplencia": {
+        "tipo": "fixo",
+        "valor": "—"
+      },
+      "observacao": {
+        "tipo": "fixo",
+        "valor": "Juros menores para renda até R$ 150 mil."
+      },
+      "destaque": true,
+      "escopo": "individual",
+      "elegibilidade_js": "s=>(rEquip(s)==='ate60k'||rEquip(s)==='ate150k')&&fin(s,'maquinas')",
+      "elegibilidade": {
+        "op": "e",
+        "args": [
+          {
+            "op": "ou",
+            "args": [
+              {
+                "op": "igual",
+                "arg": {
+                  "op": "renda_equivalente"
+                },
+                "valor": "ate60k"
+              },
+              {
+                "op": "igual",
+                "arg": {
+                  "op": "renda_equivalente"
+                },
+                "valor": "ate150k"
+              }
+            ]
+          },
+          {
+            "op": "contem",
+            "campo": "finalidade",
+            "valor": "maquinas"
+          }
+        ]
+      }
+    },
+    {
+      "id": "maisa_maq_500",
+      "nome": "Pronaf Mais Alimentos – Máquinas",
+      "grupo_finalidade": "Máquinas, tratores ou implementos",
+      "grupo_pronaf": "Pronaf Mais Alimentos",
+      "limite": {
+        "tipo": "fixo",
+        "valor": "250 mil"
+      },
+      "limite_mil_reais": {
+        "tipo": "fixo",
+        "valor": 250
+      },
+      "juros_aa_pct": 5,
+      "prazo_anos": 7,
+      "carencia_anos": 1,
+      "prazo_texto": "7 anos",
+      "carencia_texto": "12 meses",
+      "bonus_adimplencia": {
+        "tipo": "fixo",
+        "valor": "—"
+      },
+      "observacao": {
+        "tipo": "fixo",
+        "valor": null
+      },
+      "destaque": false,
+      "escopo": "individual",
+      "elegibilidade_js": "s=>fin(s,'maquinas')",
+      "elegibilidade": {
+        "op": "contem",
+        "campo": "finalidade",
+        "valor": "maquinas"
+      }
+    },
+    {
+      "id": "mulher_maq_150",
+      "nome": "Pronaf Mulher – Máquinas (juros reduzidos)",
+      "grupo_finalidade": "Máquinas, tratores ou implementos",
+      "grupo_pronaf": "Pronaf Mulher",
+      "limite": {
+        "tipo": "fixo",
+        "valor": "120 mil"
+      },
+      "limite_mil_reais": {
+        "tipo": "fixo",
+        "valor": 120
+      },
+      "juros_aa_pct": 1.5,
+      "prazo_anos": 7,
+      "carencia_anos": 1,
+      "prazo_texto": "7 anos",
+      "carencia_texto": "1 ano",
+      "bonus_adimplencia": {
+        "tipo": "fixo",
+        "valor": "—"
+      },
+      "observacao": {
+        "tipo": "fixo",
+        "valor": "Faixa especial para mulheres com renda até R$ 150 mil."
+      },
+      "destaque": true,
+      "escopo": "individual",
+      "elegibilidade_js": "s=>perf(s,'mulher')&&(rEquip(s)==='ate60k'||rEquip(s)==='ate150k')&&fin(s,'maquinas')",
+      "elegibilidade": {
+        "op": "e",
+        "args": [
+          {
+            "op": "e",
+            "args": [
+              {
+                "op": "contem",
+                "campo": "perfil",
+                "valor": "mulher"
+              },
+              {
+                "op": "ou",
+                "args": [
+                  {
+                    "op": "igual",
+                    "arg": {
+                      "op": "renda_equivalente"
+                    },
+                    "valor": "ate60k"
+                  },
+                  {
+                    "op": "igual",
+                    "arg": {
+                      "op": "renda_equivalente"
+                    },
+                    "valor": "ate150k"
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "op": "contem",
+            "campo": "finalidade",
+            "valor": "maquinas"
+          }
+        ]
+      }
+    },
+    {
+      "id": "mulher_maq_500",
+      "nome": "Pronaf Mulher – Máquinas",
+      "grupo_finalidade": "Máquinas, tratores ou implementos",
+      "grupo_pronaf": "Pronaf Mulher",
+      "limite": {
+        "tipo": "fixo",
+        "valor": "250 mil"
+      },
+      "limite_mil_reais": {
+        "tipo": "fixo",
+        "valor": 250
+      },
+      "juros_aa_pct": 5,
+      "prazo_anos": 7,
+      "carencia_anos": 1,
+      "prazo_texto": "7 anos",
+      "carencia_texto": "12 meses",
+      "bonus_adimplencia": {
+        "tipo": "fixo",
+        "valor": "—"
+      },
+      "observacao": {
+        "tipo": "fixo",
+        "valor": null
+      },
+      "destaque": false,
+      "escopo": "individual",
+      "elegibilidade_js": "s=>perf(s,'mulher')&&fin(s,'maquinas')",
+      "elegibilidade": {
+        "op": "e",
+        "args": [
+          {
+            "op": "contem",
+            "campo": "perfil",
+            "valor": "mulher"
+          },
+          {
+            "op": "contem",
+            "campo": "finalidade",
+            "valor": "maquinas"
+          }
+        ]
+      }
+    },
+    {
+      "id": "maisa_cam",
+      "nome": "Pronaf Mais Alimentos – Caminhonete/Moto",
+      "grupo_finalidade": "Caminhonete ou motocicleta",
+      "grupo_pronaf": "Pronaf Mais Alimentos",
+      "limite": {
+        "tipo": "fixo",
+        "valor": "250 mil"
+      },
+      "limite_mil_reais": {
+        "tipo": "fixo",
+        "valor": 250
+      },
+      "juros_aa_pct": 7.5,
+      "prazo_anos": 5,
+      "carencia_anos": 0,
+      "prazo_texto": "5 anos",
+      "carencia_texto": "—",
+      "bonus_adimplencia": {
+        "tipo": "fixo",
+        "valor": "—"
+      },
+      "observacao": {
+        "tipo": "fixo",
+        "valor": "Para uso exclusivo na atividade rural."
+      },
+      "destaque": false,
+      "escopo": "individual",
+      "elegibilidade_js": "s=>fin(s,'caminhonete')",
+      "elegibilidade": {
+        "op": "contem",
+        "campo": "finalidade",
+        "valor": "caminhonete"
+      }
+    },
+    {
+      "id": "mulher_cam",
+      "nome": "Pronaf Mulher – Caminhonete/Moto",
+      "grupo_finalidade": "Caminhonete ou motocicleta",
+      "grupo_pronaf": "Pronaf Mulher",
+      "limite": {
+        "tipo": "fixo",
+        "valor": "250 mil"
+      },
+      "limite_mil_reais": {
+        "tipo": "fixo",
+        "valor": 250
+      },
+      "juros_aa_pct": 7.5,
+      "prazo_anos": 5,
+      "carencia_anos": 0,
+      "prazo_texto": "5 anos",
+      "carencia_texto": "—",
+      "bonus_adimplencia": {
+        "tipo": "fixo",
+        "valor": "—"
+      },
+      "observacao": {
+        "tipo": "fixo",
+        "valor": null
+      },
+      "destaque": false,
+      "escopo": "individual",
+      "elegibilidade_js": "s=>perf(s,'mulher')&&fin(s,'caminhonete')",
+      "elegibilidade": {
+        "op": "e",
+        "args": [
+          {
+            "op": "contem",
+            "campo": "perfil",
+            "valor": "mulher"
+          },
+          {
+            "op": "contem",
+            "campo": "finalidade",
+            "valor": "caminhonete"
+          }
+        ]
+      }
+    },
+    {
+      "id": "maisa_mor",
+      "nome": "Pronaf Mais Alimentos – Habitação",
+      "grupo_finalidade": "Moradia rural",
+      "grupo_pronaf": "Pronaf Mais Alimentos",
+      "limite": {
+        "tipo": "fixo",
+        "valor": "150 mil"
+      },
+      "limite_mil_reais": {
+        "tipo": "fixo",
+        "valor": 150
+      },
+      "juros_aa_pct": 7.5,
+      "prazo_anos": 10,
+      "carencia_anos": 3,
+      "prazo_texto": "10 anos",
+      "carencia_texto": "3 anos",
+      "bonus_adimplencia": {
+        "tipo": "fixo",
+        "valor": "—"
+      },
+      "observacao": {
+        "tipo": "fixo",
+        "valor": null
+      },
+      "destaque": false,
+      "escopo": "individual",
+      "elegibilidade_js": "s=>fin(s,'moradia')",
+      "elegibilidade": {
+        "op": "contem",
+        "campo": "finalidade",
+        "valor": "moradia"
+      }
+    },
+    {
+      "id": "mulher_mor",
+      "nome": "Pronaf Mulher – Habitação",
+      "grupo_finalidade": "Moradia rural",
+      "grupo_pronaf": "Pronaf Mulher",
+      "limite": {
+        "tipo": "fixo",
+        "valor": "150 mil"
+      },
+      "limite_mil_reais": {
+        "tipo": "fixo",
+        "valor": 150
+      },
+      "juros_aa_pct": 7.5,
+      "prazo_anos": 10,
+      "carencia_anos": 3,
+      "prazo_texto": "10 anos",
+      "carencia_texto": "3 anos",
+      "bonus_adimplencia": {
+        "tipo": "fixo",
+        "valor": "—"
+      },
+      "observacao": {
+        "tipo": "fixo",
+        "valor": null
+      },
+      "destaque": false,
+      "escopo": "individual",
+      "elegibilidade_js": "s=>perf(s,'mulher')&&fin(s,'moradia')&&s.renda!=='ate60k'&&s.renda!=='ate150k'",
+      "elegibilidade": {
+        "op": "e",
+        "args": [
+          {
+            "op": "e",
+            "args": [
+              {
+                "op": "e",
+                "args": [
+                  {
+                    "op": "contem",
+                    "campo": "perfil",
+                    "valor": "mulher"
+                  },
+                  {
+                    "op": "contem",
+                    "campo": "finalidade",
+                    "valor": "moradia"
+                  }
+                ]
+              },
+              {
+                "op": "diferente",
+                "arg": {
+                  "op": "campo",
+                  "campo": "renda"
+                },
+                "valor": "ate60k"
+              }
+            ]
+          },
+          {
+            "op": "diferente",
+            "arg": {
+              "op": "campo",
+              "campo": "renda"
+            },
+            "valor": "ate150k"
+          }
+        ]
+      }
+    },
+    {
+      "id": "agro_pf",
+      "nome": "Pronaf Agroindústria / Industrialização",
+      "grupo_finalidade": "Agroindústria",
+      "grupo_pronaf": "Pronaf Agroindústria",
+      "limite": {
+        "tipo": "fixo",
+        "valor": "250 mil (invest.) / 75 mil (custeio)"
+      },
+      "limite_mil_reais": {
+        "tipo": "fixo",
+        "valor": 250
+      },
+      "juros_aa_pct": 7.5,
+      "prazo_anos": 10,
+      "carencia_anos": 3,
+      "prazo_texto": "10 anos (invest.) / 1 ano (custeio)",
+      "carencia_texto": "3 anos (invest.)",
+      "bonus_adimplencia": {
+        "tipo": "fixo",
+        "valor": "—"
+      },
+      "observacao": {
+        "tipo": "fixo",
+        "valor": "Investimento: R$ 250 mil. Custeio: R$ 75 mil."
+      },
+      "destaque": false,
+      "escopo": "individual",
+      "elegibilidade_js": "s=>fin(s,'agroindustria')",
+      "elegibilidade": {
+        "op": "contem",
+        "campo": "finalidade",
+        "valor": "agroindustria"
+      }
+    },
+    {
+      "id": "cotas_pf",
+      "nome": "Pronaf Cotas-Partes",
+      "grupo_finalidade": "Integralização de cotas-partes",
+      "grupo_pronaf": "Pronaf Cotas-Partes",
+      "limite": {
+        "tipo": "fixo",
+        "valor": "75 mil"
+      },
+      "limite_mil_reais": {
+        "tipo": "fixo",
+        "valor": 75
+      },
+      "juros_aa_pct": 7.5,
+      "prazo_anos": 10,
+      "carencia_anos": 3,
+      "prazo_texto": "10 anos",
+      "carencia_texto": "3 anos",
+      "bonus_adimplencia": {
+        "tipo": "fixo",
+        "valor": "—"
+      },
+      "observacao": {
+        "tipo": "fixo",
+        "valor": "Para integralização de cotas-partes em cooperativas de produção rural."
+      },
+      "destaque": false,
+      "escopo": "individual",
+      "elegibilidade_js": "s=>false",
+      "elegibilidade": {
+        "op": "const",
+        "valor": false
+      }
+    },
+    {
+      "id": "floresta_saf_b",
+      "nome": "Pronaf Floresta – Sistemas Agroflorestais",
+      "grupo_finalidade": "Floresta ou produção sustentável",
+      "grupo_pronaf": "Pronaf Floresta",
+      "limite": {
+        "tipo": "fixo",
+        "valor": "110 mil"
+      },
+      "limite_mil_reais": {
+        "tipo": "fixo",
+        "valor": 110
+      },
+      "juros_aa_pct": 2,
+      "prazo_anos": 12,
+      "carencia_anos": 8,
+      "prazo_texto": "12 anos",
+      "carencia_texto": "8 anos",
+      "bonus_adimplencia": {
+        "tipo": "fixo",
+        "valor": "—"
+      },
+      "observacao": {
+        "tipo": "fixo",
+        "valor": "Sistemas agroflorestais. Prazo diferenciado: 12 anos com carência de 8 anos para beneficiários do Grupo B (renda até R$ 60 mil)."
+      },
+      "destaque": false,
+      "escopo": "individual",
+      "elegibilidade_js": "s=>false",
+      "elegibilidade": {
+        "op": "const",
+        "valor": false
+      }
+    },
+    {
+      "id": "floresta_saf",
+      "nome": "Pronaf Floresta – Sistemas Agroflorestais",
+      "grupo_finalidade": "Floresta ou produção sustentável",
+      "grupo_pronaf": "Pronaf Floresta",
+      "limite": {
+        "tipo": "fixo",
+        "valor": "110 mil"
+      },
+      "limite_mil_reais": {
+        "tipo": "fixo",
+        "valor": 110
+      },
+      "juros_aa_pct": 2,
+      "prazo_anos": 20,
+      "carencia_anos": 12,
+      "prazo_texto": "20 anos",
+      "carencia_texto": "12 anos",
+      "bonus_adimplencia": {
+        "tipo": "fixo",
+        "valor": "—"
+      },
+      "observacao": {
+        "tipo": "fixo",
+        "valor": "Maior prazo e carência do PRONAF. Sistemas agroflorestais, recomposição de mata, extrativismo."
+      },
+      "destaque": true,
+      "escopo": "individual",
+      "elegibilidade_js": "s=>fin(s,'floresta')&&s.renda!=='ate60k'&&!perf(s,'assentado')",
+      "elegibilidade": {
+        "op": "e",
+        "args": [
+          {
+            "op": "e",
+            "args": [
+              {
+                "op": "contem",
+                "campo": "finalidade",
+                "valor": "floresta"
+              },
+              {
+                "op": "diferente",
+                "arg": {
+                  "op": "campo",
+                  "campo": "renda"
+                },
+                "valor": "ate60k"
+              }
+            ]
+          },
+          {
+            "op": "nao",
+            "arg": {
+              "op": "contem",
+              "campo": "perfil",
+              "valor": "assentado"
+            }
+          }
+        ]
+      }
+    },
+    {
+      "id": "floresta_aab",
+      "nome": "Pronaf Floresta – Grupos A, A/C e B",
+      "grupo_finalidade": "Floresta ou produção sustentável",
+      "grupo_pronaf": "Pronaf Floresta",
+      "limite": {
+        "tipo": "fixo",
+        "valor": "25 mil"
+      },
+      "limite_mil_reais": {
+        "tipo": "fixo",
+        "valor": 25
+      },
+      "juros_aa_pct": 2,
+      "prazo_anos": 12,
+      "carencia_anos": 8,
+      "prazo_texto": "12 anos",
+      "carencia_texto": "8 anos",
+      "bonus_adimplencia": {
+        "tipo": "fixo",
+        "valor": "—"
+      },
+      "observacao": {
+        "tipo": "fixo",
+        "valor": "Limite único de R$ 25 mil para todas as finalidades do Pronaf Floresta, exclusivo para os Grupos A, A/C e B — pode ser acessado cumulativamente com os limites de investimento do Pronaf A/A-C (ID 1) ou Pronaf B (ID 5)."
+      },
+      "destaque": true,
+      "escopo": "individual",
+      "elegibilidade_js": "s=>fin(s,'floresta')&&(perf(s,'assentado')||s.renda==='ate60k')",
+      "elegibilidade": {
+        "op": "e",
+        "args": [
+          {
+            "op": "contem",
+            "campo": "finalidade",
+            "valor": "floresta"
+          },
+          {
+            "op": "ou",
+            "args": [
+              {
+                "op": "contem",
+                "campo": "perfil",
+                "valor": "assentado"
+              },
+              {
+                "op": "igual",
+                "arg": {
+                  "op": "campo",
+                  "campo": "renda"
+                },
+                "valor": "ate60k"
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "id": "floresta_maq",
+      "nome": "Pronaf Floresta / Semiárido – Máquinas (juros reduzidos)",
+      "grupo_finalidade": "Floresta ou produção sustentável",
+      "grupo_pronaf": "Pronaf Floresta",
+      "limite": {
+        "tipo": "fixo",
+        "valor": "60 mil"
+      },
+      "limite_mil_reais": {
+        "tipo": "fixo",
+        "valor": 60
+      },
+      "juros_aa_pct": 3,
+      "prazo_anos": 11,
+      "carencia_anos": 5,
+      "prazo_texto": "10 a 12 anos",
+      "carencia_texto": "3 a 8 anos",
+      "bonus_adimplencia": {
+        "tipo": "fixo",
+        "valor": "—"
+      },
+      "observacao": {
+        "tipo": "fixo",
+        "valor": "Faixa para renda até R$ 150 mil: máquinas para projetos de floresta ou Semiárido."
+      },
+      "destaque": true,
+      "escopo": "individual",
+      "elegibilidade_js": "s=>fin(s,'floresta')&&(rEquip(s)==='ate50k'||rEquip(s)==='ate150k')&&s.renda!=='ate60k'&&!perf(s,'assentado')",
+      "elegibilidade": {
+        "op": "e",
+        "args": [
+          {
+            "op": "e",
+            "args": [
+              {
+                "op": "e",
+                "args": [
+                  {
+                    "op": "contem",
+                    "campo": "finalidade",
+                    "valor": "floresta"
+                  },
+                  {
+                    "op": "ou",
+                    "args": [
+                      {
+                        "op": "igual",
+                        "arg": {
+                          "op": "renda_equivalente"
+                        },
+                        "valor": "ate50k"
+                      },
+                      {
+                        "op": "igual",
+                        "arg": {
+                          "op": "renda_equivalente"
+                        },
+                        "valor": "ate150k"
+                      }
+                    ]
+                  }
+                ]
+              },
+              {
+                "op": "diferente",
+                "arg": {
+                  "op": "campo",
+                  "campo": "renda"
+                },
+                "valor": "ate60k"
+              }
+            ]
+          },
+          {
+            "op": "nao",
+            "arg": {
+              "op": "contem",
+              "campo": "perfil",
+              "valor": "assentado"
+            }
+          }
+        ]
+      }
+    },
+    {
+      "id": "floresta_g",
+      "nome": "Pronaf Floresta – Outras finalidades",
+      "grupo_finalidade": "Floresta ou produção sustentável",
+      "grupo_pronaf": "Pronaf Floresta",
+      "limite": {
+        "tipo": "fixo",
+        "valor": "45 mil"
+      },
+      "limite_mil_reais": {
+        "tipo": "fixo",
+        "valor": 45
+      },
+      "juros_aa_pct": 2,
+      "prazo_anos": 12,
+      "carencia_anos": 8,
+      "prazo_texto": "12 anos",
+      "carencia_texto": "8 anos",
+      "bonus_adimplencia": {
+        "tipo": "fixo",
+        "valor": "—"
+      },
+      "observacao": {
+        "tipo": "fixo",
+        "valor": "APP, reserva legal, enriquecimento florestal e frutíferas nativas."
+      },
+      "destaque": false,
+      "escopo": "individual",
+      "elegibilidade_js": "s=>fin(s,'floresta')&&s.renda!=='ate60k'&&!perf(s,'assentado')",
+      "elegibilidade": {
+        "op": "e",
+        "args": [
+          {
+            "op": "e",
+            "args": [
+              {
+                "op": "contem",
+                "campo": "finalidade",
+                "valor": "floresta"
+              },
+              {
+                "op": "diferente",
+                "arg": {
+                  "op": "campo",
+                  "campo": "renda"
+                },
+                "valor": "ate60k"
+              }
+            ]
+          },
+          {
+            "op": "nao",
+            "arg": {
+              "op": "contem",
+              "campo": "perfil",
+              "valor": "assentado"
+            }
+          }
+        ]
+      }
+    },
+    {
+      "id": "bioecon_silv",
+      "nome": "Pronaf Bioeconomia – Silvicultura",
+      "grupo_finalidade": "Floresta ou produção sustentável",
+      "grupo_pronaf": "Pronaf Bioeconomia",
+      "limite": {
+        "tipo": "fixo",
+        "valor": "450 mil"
+      },
+      "limite_mil_reais": {
+        "tipo": "fixo",
+        "valor": 450
+      },
+      "juros_aa_pct": 7.5,
+      "prazo_anos": 16,
+      "carencia_anos": 8,
+      "prazo_texto": "16 anos",
+      "carencia_texto": "8 anos",
+      "bonus_adimplencia": {
+        "tipo": "fixo",
+        "valor": "—"
+      },
+      "observacao": {
+        "tipo": "fixo",
+        "valor": "Silvicultura (plantio comercial de espécies florestais). Taxa de juros de 7,5% ao ano."
+      },
+      "destaque": false,
+      "escopo": "individual",
+      "elegibilidade_js": "s=>fin(s,'floresta')&&s.renda!=='ate60k'&&!perf(s,'assentado')",
+      "elegibilidade": {
+        "op": "e",
+        "args": [
+          {
+            "op": "e",
+            "args": [
+              {
+                "op": "contem",
+                "campo": "finalidade",
+                "valor": "floresta"
+              },
+              {
+                "op": "diferente",
+                "arg": {
+                  "op": "campo",
+                  "campo": "renda"
+                },
+                "valor": "ate60k"
+              }
+            ]
+          },
+          {
+            "op": "nao",
+            "arg": {
+              "op": "contem",
+              "campo": "perfil",
+              "valor": "assentado"
+            }
+          }
+        ]
+      }
+    },
+    {
+      "id": "bioecon_saf",
+      "nome": "Pronaf Bioeconomia – Sistemas Agroflorestais",
+      "grupo_finalidade": "Floresta ou produção sustentável",
+      "grupo_pronaf": "Pronaf Bioeconomia",
+      "limite": {
+        "tipo": "fixo",
+        "valor": "450 mil"
+      },
+      "limite_mil_reais": {
+        "tipo": "fixo",
+        "valor": 450
+      },
+      "juros_aa_pct": 2,
+      "prazo_anos": 16,
+      "carencia_anos": 8,
+      "prazo_texto": "16 anos",
+      "carencia_texto": "8 anos",
+      "bonus_adimplencia": {
+        "tipo": "fixo",
+        "valor": "—"
+      },
+      "observacao": {
+        "tipo": "fixo",
+        "valor": null
+      },
+      "destaque": true,
+      "escopo": "individual",
+      "elegibilidade_js": "s=>fin(s,'floresta')&&s.renda!=='ate60k'&&!perf(s,'assentado')",
+      "elegibilidade": {
+        "op": "e",
+        "args": [
+          {
+            "op": "e",
+            "args": [
+              {
+                "op": "contem",
+                "campo": "finalidade",
+                "valor": "floresta"
+              },
+              {
+                "op": "diferente",
+                "arg": {
+                  "op": "campo",
+                  "campo": "renda"
+                },
+                "valor": "ate60k"
+              }
+            ]
+          },
+          {
+            "op": "nao",
+            "arg": {
+              "op": "contem",
+              "campo": "perfil",
+              "valor": "assentado"
+            }
+          }
+        ]
+      }
+    },
+    {
+      "id": "bioecon",
+      "nome": "Pronaf Bioeconomia – Outras finalidades",
+      "grupo_finalidade": "Floresta ou produção sustentável",
+      "grupo_pronaf": "Pronaf Bioeconomia",
+      "limite": {
+        "tipo": "fixo",
+        "valor": "250 mil"
+      },
+      "limite_mil_reais": {
+        "tipo": "fixo",
+        "valor": 250
+      },
+      "juros_aa_pct": 2,
+      "prazo_anos": 10,
+      "carencia_anos": 5,
+      "prazo_texto": "10 anos",
+      "carencia_texto": "5 anos",
+      "bonus_adimplencia": {
+        "tipo": "fixo",
+        "valor": "—"
+      },
+      "observacao": {
+        "tipo": "fixo",
+        "valor": "Energia solar, turismo rural, bioinsumos, irrigação, extrativismo, regularização ambiental."
+      },
+      "destaque": false,
+      "escopo": "individual",
+      "elegibilidade_js": "s=>fin(s,'floresta')&&s.renda!=='ate60k'&&!perf(s,'assentado')",
+      "elegibilidade": {
+        "op": "e",
+        "args": [
+          {
+            "op": "e",
+            "args": [
+              {
+                "op": "contem",
+                "campo": "finalidade",
+                "valor": "floresta"
+              },
+              {
+                "op": "diferente",
+                "arg": {
+                  "op": "campo",
+                  "campo": "renda"
+                },
+                "valor": "ate60k"
+              }
+            ]
+          },
+          {
+            "op": "nao",
+            "arg": {
+              "op": "contem",
+              "campo": "perfil",
+              "valor": "assentado"
+            }
+          }
+        ]
+      }
+    },
+    {
+      "id": "semiarido_b",
+      "nome": "Pronaf Adaptação Climática – Semiárido",
+      "grupo_finalidade": "Adaptação ao Semiárido",
+      "grupo_pronaf": "Pronaf Adaptação Climática",
+      "limite": {
+        "tipo": "fixo",
+        "valor": "60 mil"
+      },
+      "limite_mil_reais": {
+        "tipo": "fixo",
+        "valor": 60
+      },
+      "juros_aa_pct": 2,
+      "prazo_anos": 10,
+      "carencia_anos": 3,
+      "prazo_texto": "10 anos",
+      "carencia_texto": "3 anos",
+      "bonus_adimplencia": {
+        "tipo": "fixo",
+        "valor": "—"
+      },
+      "observacao": {
+        "tipo": "fixo",
+        "valor": "Faixa para renda familiar bruta anual acima de R$ 150 mil. Projetos de convivência com o semiárido (área da Sudene): cisternas, irrigação, dessalinização, sistemas produtivos adaptados à seca. Assistência técnica obrigatória. Prazo pode ser ampliado para 5 anos de carência conforme projeto técnico."
+      },
+      "destaque": false,
+      "escopo": "individual",
+      "elegibilidade_js": "s=>(fin(s,'semiarido')||fin(s,'floresta'))&&(s.regiao==='ne'||(s.regiao==='se'&&!!s.sudene_municipio_ok))&&(s.renda==='ate500k'||s.renda==='ate714k')",
+      "elegibilidade": {
+        "op": "e",
+        "args": [
+          {
+            "op": "e",
+            "args": [
+              {
+                "op": "ou",
+                "args": [
+                  {
+                    "op": "contem",
+                    "campo": "finalidade",
+                    "valor": "semiarido"
+                  },
+                  {
+                    "op": "contem",
+                    "campo": "finalidade",
+                    "valor": "floresta"
+                  }
+                ]
+              },
+              {
+                "op": "ou",
+                "args": [
+                  {
+                    "op": "igual",
+                    "arg": {
+                      "op": "campo",
+                      "campo": "regiao"
+                    },
+                    "valor": "ne"
+                  },
+                  {
+                    "op": "e",
+                    "args": [
+                      {
+                        "op": "igual",
+                        "arg": {
+                          "op": "campo",
+                          "campo": "regiao"
+                        },
+                        "valor": "se"
+                      },
+                      {
+                        "op": "truthy",
+                        "arg": {
+                          "op": "campo",
+                          "campo": "sudene_municipio_ok"
+                        }
+                      }
+                    ]
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "op": "ou",
+            "args": [
+              {
+                "op": "igual",
+                "arg": {
+                  "op": "campo",
+                  "campo": "renda"
+                },
+                "valor": "ate500k"
+              },
+              {
+                "op": "igual",
+                "arg": {
+                  "op": "campo",
+                  "campo": "renda"
+                },
+                "valor": "ate714k"
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "id": "semiarido",
+      "nome": "Pronaf Adaptação Climática – Semiárido",
+      "grupo_finalidade": "Adaptação ao Semiárido",
+      "grupo_pronaf": "Pronaf Adaptação Climática",
+      "limite": {
+        "tipo": "fixo",
+        "valor": "45 mil"
+      },
+      "limite_mil_reais": {
+        "tipo": "fixo",
+        "valor": 45
+      },
+      "juros_aa_pct": 2,
+      "prazo_anos": 10,
+      "carencia_anos": 3,
+      "prazo_texto": "10 anos",
+      "carencia_texto": "3 anos",
+      "bonus_adimplencia": {
+        "tipo": "fixo",
+        "valor": "—"
+      },
+      "observacao": {
+        "tipo": "fixo",
+        "valor": "Faixa para renda familiar bruta anual até R$ 150 mil. Projetos de convivência com o semiárido (área da Sudene): cisternas, irrigação, dessalinização, sistemas produtivos adaptados à seca. Assistência técnica obrigatória. Prazo pode ser ampliado para 5 anos de carência conforme projeto técnico."
+      },
+      "destaque": false,
+      "escopo": "individual",
+      "elegibilidade_js": "s=>(fin(s,'semiarido')||fin(s,'floresta'))&&(s.regiao==='ne'||(s.regiao==='se'&&!!s.sudene_municipio_ok))&&(s.renda==='ate60k'||s.renda==='ate150k')",
+      "elegibilidade": {
+        "op": "e",
+        "args": [
+          {
+            "op": "e",
+            "args": [
+              {
+                "op": "ou",
+                "args": [
+                  {
+                    "op": "contem",
+                    "campo": "finalidade",
+                    "valor": "semiarido"
+                  },
+                  {
+                    "op": "contem",
+                    "campo": "finalidade",
+                    "valor": "floresta"
+                  }
+                ]
+              },
+              {
+                "op": "ou",
+                "args": [
+                  {
+                    "op": "igual",
+                    "arg": {
+                      "op": "campo",
+                      "campo": "regiao"
+                    },
+                    "valor": "ne"
+                  },
+                  {
+                    "op": "e",
+                    "args": [
+                      {
+                        "op": "igual",
+                        "arg": {
+                          "op": "campo",
+                          "campo": "regiao"
+                        },
+                        "valor": "se"
+                      },
+                      {
+                        "op": "truthy",
+                        "arg": {
+                          "op": "campo",
+                          "campo": "sudene_municipio_ok"
+                        }
+                      }
+                    ]
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "op": "ou",
+            "args": [
+              {
+                "op": "igual",
+                "arg": {
+                  "op": "campo",
+                  "campo": "renda"
+                },
+                "valor": "ate60k"
+              },
+              {
+                "op": "igual",
+                "arg": {
+                  "op": "campo",
+                  "campo": "renda"
+                },
+                "valor": "ate150k"
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "id": "b_agroeco",
+      "nome": "Pronaf B – Agroecologia e Quintais",
+      "grupo_finalidade": "Produção orgânica ou agroecológica",
+      "grupo_pronaf": "Pronaf B",
+      "limite": {
+        "tipo": "fixo",
+        "valor": "20 mil"
+      },
+      "limite_mil_reais": {
+        "tipo": "fixo",
+        "valor": 20
+      },
+      "juros_aa_pct": 0.5,
+      "prazo_anos": 3,
+      "carencia_anos": 0,
+      "prazo_texto": "3 anos",
+      "carencia_texto": "—",
+      "bonus_adimplencia": {
+        "tipo": "por_regiao",
+        "valor": {
+          "no": "Sim — 25% a 40% (Norte e Nordeste)",
+          "ne": "Sim — 25% a 40% (Norte e Nordeste)",
+          "co": "Sim — 25% (Centro-Oeste)",
+          "se": "Não (Sul e Sudeste)",
+          "su": "Não (Sul e Sudeste)"
+        },
+        "depende_renda": false
+      },
+      "observacao": {
+        "tipo": "fixo",
+        "valor": "Sistemas agroecológicos, orgânicos e quintais produtivos."
+      },
+      "destaque": true,
+      "escopo": "individual",
+      "elegibilidade_js": "s=>s.renda==='ate60k'&&fin(s,'agroeco')",
+      "elegibilidade": {
+        "op": "e",
+        "args": [
+          {
+            "op": "igual",
+            "arg": {
+              "op": "campo",
+              "campo": "renda"
+            },
+            "valor": "ate60k"
+          },
+          {
+            "op": "contem",
+            "campo": "finalidade",
+            "valor": "agroeco"
+          }
+        ]
+      }
+    },
+    {
+      "id": "quintal_mulher_b",
+      "nome": "Pronaf B – Quintal Produtivo",
+      "grupo_finalidade": "Investimento amplo (A/B)",
+      "grupo_pronaf": "Pronaf B",
+      "limite": {
+        "tipo": "fixo",
+        "valor": "20 mil"
+      },
+      "limite_mil_reais": {
+        "tipo": "fixo",
+        "valor": 20
+      },
+      "juros_aa_pct": 0.5,
+      "prazo_anos": 3,
+      "carencia_anos": 0,
+      "prazo_texto": "3 anos",
+      "carencia_texto": "—",
+      "bonus_adimplencia": {
+        "tipo": "por_regiao",
+        "valor": {
+          "no": "Sim — 25% a 40% (Norte e Nordeste)",
+          "ne": "Sim — 25% a 40% (Norte e Nordeste)",
+          "co": "Sim — 25% (Centro-Oeste)",
+          "se": "Não (Sul e Sudeste)",
+          "su": "Não (Sul e Sudeste)"
+        },
+        "depende_renda": false
+      },
+      "observacao": {
+        "tipo": "fixo",
+        "valor": "Horta, pomar, pequenas máquinas e implementos, criação de animais e produção de mel. Linha específica para mulheres agricultoras."
+      },
+      "destaque": true,
+      "escopo": "individual",
+      "elegibilidade_js": "s=>perf(s,'mulher')&&s.renda==='ate60k'&&fin(s,'quintal')",
+      "elegibilidade": {
+        "op": "e",
+        "args": [
+          {
+            "op": "e",
+            "args": [
+              {
+                "op": "contem",
+                "campo": "perfil",
+                "valor": "mulher"
+              },
+              {
+                "op": "igual",
+                "arg": {
+                  "op": "campo",
+                  "campo": "renda"
+                },
+                "valor": "ate60k"
+              }
+            ]
+          },
+          {
+            "op": "contem",
+            "campo": "finalidade",
+            "valor": "quintal"
+          }
+        ]
+      }
+    },
+    {
+      "id": "quintal_mulher_agroeco",
+      "nome": "Pronaf Agroecologia – Quintal Produtivo",
+      "grupo_finalidade": "Produção orgânica ou agroecológica",
+      "grupo_pronaf": "Pronaf Agroecologia",
+      "limite": {
+        "tipo": "fixo",
+        "valor": "250 a 450 mil"
+      },
+      "limite_mil_reais": {
+        "tipo": "fixo",
+        "valor": 250
+      },
+      "juros_aa_pct": 2,
+      "prazo_anos": 7,
+      "carencia_anos": 3,
+      "prazo_texto": "5 a 10 anos",
+      "carencia_texto": "3 anos",
+      "bonus_adimplencia": {
+        "tipo": "fixo",
+        "valor": "—"
+      },
+      "observacao": {
+        "tipo": "fixo",
+        "valor": "Para projetos maiores de quintal produtivo com certificação ou plano técnico."
+      },
+      "destaque": true,
+      "escopo": "individual",
+      "elegibilidade_js": "s=>perf(s,'mulher')&&fin(s,'quintal')",
+      "elegibilidade": {
+        "op": "e",
+        "args": [
+          {
+            "op": "contem",
+            "campo": "perfil",
+            "valor": "mulher"
+          },
+          {
+            "op": "contem",
+            "campo": "finalidade",
+            "valor": "quintal"
+          }
+        ]
+      }
+    },
+    {
+      "id": "pronaf_agroeco_450",
+      "nome": "Pronaf Agroecologia – Suinocultura, avicultura, aquicultura, carcinicultura e fruticultura",
+      "grupo_finalidade": "Produção orgânica ou agroecológica",
+      "grupo_pronaf": "Pronaf Agroecologia",
+      "limite": {
+        "tipo": "fixo",
+        "valor": "450 mil"
+      },
+      "limite_mil_reais": {
+        "tipo": "fixo",
+        "valor": 450
+      },
+      "juros_aa_pct": 2,
+      "prazo_anos": 7,
+      "carencia_anos": 3,
+      "prazo_texto": "5 a 10 anos",
+      "carencia_texto": "3 anos",
+      "bonus_adimplencia": {
+        "tipo": "fixo",
+        "valor": "—"
+      },
+      "observacao": {
+        "tipo": "fixo",
+        "valor": "Limite de R$ 450 mil para suinocultura, avicultura, aquicultura, carcinicultura (criação de crustáceos) e fruticultura."
+      },
+      "destaque": true,
+      "escopo": "individual",
+      "elegibilidade_js": "s=>fin(s,'agroeco')",
+      "elegibilidade": {
+        "op": "contem",
+        "campo": "finalidade",
+        "valor": "agroeco"
+      }
+    },
+    {
+      "id": "pronaf_agroeco",
+      "nome": "Pronaf Agroecologia – Demais finalidades",
+      "grupo_finalidade": "Produção orgânica ou agroecológica",
+      "grupo_pronaf": "Pronaf Agroecologia",
+      "limite": {
+        "tipo": "fixo",
+        "valor": "250 mil"
+      },
+      "limite_mil_reais": {
+        "tipo": "fixo",
+        "valor": 250
+      },
+      "juros_aa_pct": 2,
+      "prazo_anos": 7,
+      "carencia_anos": 3,
+      "prazo_texto": "5 a 10 anos",
+      "carencia_texto": "3 anos",
+      "bonus_adimplencia": {
+        "tipo": "fixo",
+        "valor": "—"
+      },
+      "observacao": {
+        "tipo": "fixo",
+        "valor": "Exige certificação de produção orgânica, ou projeto técnico que não use fertilizantes sintéticos de alta solubilidade, agrotóxicos (exceto biológicos e aprovados para produção orgânica), reguladores de crescimento sintéticos ou organismos geneticamente modificados (OGM)."
+      },
+      "destaque": true,
+      "escopo": "individual",
+      "elegibilidade_js": "s=>fin(s,'agroeco')",
+      "elegibilidade": {
+        "op": "contem",
+        "campo": "finalidade",
+        "valor": "agroeco"
+      }
+    },
+    {
+      "id": "gen_leite",
+      "nome": "Pronaf Mais Alimentos – Melhoramento Genético (leite)",
+      "grupo_finalidade": "Melhoramento do rebanho",
+      "grupo_pronaf": "Pronaf Mais Alimentos",
+      "limite": {
+        "tipo": "fixo",
+        "valor": "250 mil"
+      },
+      "limite_mil_reais": {
+        "tipo": "fixo",
+        "valor": 250
+      },
+      "juros_aa_pct": 2,
+      "prazo_anos": 8,
+      "carencia_anos": 3,
+      "prazo_texto": "8 anos",
+      "carencia_texto": "3 anos",
+      "bonus_adimplencia": {
+        "tipo": "fixo",
+        "valor": "—"
+      },
+      "observacao": {
+        "tipo": "fixo",
+        "valor": "Sêmen, óvulos e embriões para gado leiteiro."
+      },
+      "destaque": true,
+      "escopo": "individual",
+      "elegibilidade_js": "s=>fin(s,'genetica')",
+      "elegibilidade": {
+        "op": "contem",
+        "campo": "finalidade",
+        "valor": "genetica"
+      }
+    },
+    {
+      "id": "gen_corte",
+      "nome": "Pronaf Mais Alimentos – Matrizes/Reprodutores (corte)",
+      "grupo_finalidade": "Melhoramento do rebanho",
+      "grupo_pronaf": "Pronaf Mais Alimentos",
+      "limite": {
+        "tipo": "fixo",
+        "valor": "250 mil"
+      },
+      "limite_mil_reais": {
+        "tipo": "fixo",
+        "valor": 250
+      },
+      "juros_aa_pct": 7.5,
+      "prazo_anos": 8,
+      "carencia_anos": 3,
+      "prazo_texto": "8 anos",
+      "carencia_texto": "3 anos",
+      "bonus_adimplencia": {
+        "tipo": "fixo",
+        "valor": "—"
+      },
+      "observacao": {
+        "tipo": "fixo",
+        "valor": "Matrizes, reprodutores e animais de serviço de corte."
+      },
+      "destaque": false,
+      "escopo": "individual",
+      "elegibilidade_js": "s=>fin(s,'genetica')",
+      "elegibilidade": {
+        "op": "contem",
+        "campo": "finalidade",
+        "valor": "genetica"
+      }
+    },
+    {
+      "id": "mulher_gen_leite",
+      "nome": "Pronaf Mulher – Melhoramento Genético (leite)",
+      "grupo_finalidade": "Melhoramento do rebanho",
+      "grupo_pronaf": "Pronaf Mulher",
+      "limite": {
+        "tipo": "fixo",
+        "valor": "250 mil"
+      },
+      "limite_mil_reais": {
+        "tipo": "fixo",
+        "valor": 250
+      },
+      "juros_aa_pct": 2,
+      "prazo_anos": 8,
+      "carencia_anos": 3,
+      "prazo_texto": "8 anos",
+      "carencia_texto": "3 anos",
+      "bonus_adimplencia": {
+        "tipo": "fixo",
+        "valor": "—"
+      },
+      "observacao": {
+        "tipo": "fixo",
+        "valor": null
+      },
+      "destaque": true,
+      "escopo": "individual",
+      "elegibilidade_js": "s=>perf(s,'mulher')&&fin(s,'genetica')",
+      "elegibilidade": {
+        "op": "e",
+        "args": [
+          {
+            "op": "contem",
+            "campo": "perfil",
+            "valor": "mulher"
+          },
+          {
+            "op": "contem",
+            "campo": "finalidade",
+            "valor": "genetica"
+          }
+        ]
+      }
+    },
+    {
+      "id": "mulher_gen_corte",
+      "nome": "Pronaf Mulher – Matrizes/Reprodutores (corte)",
+      "grupo_finalidade": "Melhoramento do rebanho",
+      "grupo_pronaf": "Pronaf Mulher",
+      "limite": {
+        "tipo": "fixo",
+        "valor": "250 mil"
+      },
+      "limite_mil_reais": {
+        "tipo": "fixo",
+        "valor": 250
+      },
+      "juros_aa_pct": 7.5,
+      "prazo_anos": 8,
+      "carencia_anos": 3,
+      "prazo_texto": "8 anos",
+      "carencia_texto": "3 anos",
+      "bonus_adimplencia": {
+        "tipo": "fixo",
+        "valor": "—"
+      },
+      "observacao": {
+        "tipo": "fixo",
+        "valor": null
+      },
+      "destaque": false,
+      "escopo": "individual",
+      "elegibilidade_js": "s=>perf(s,'mulher')&&fin(s,'genetica')",
+      "elegibilidade": {
+        "op": "e",
+        "args": [
+          {
+            "op": "contem",
+            "campo": "perfil",
+            "valor": "mulher"
+          },
+          {
+            "op": "contem",
+            "campo": "finalidade",
+            "valor": "genetica"
+          }
+        ]
+      }
+    },
+    {
+      "id": "fund_g",
+      "nome": "Pronaf Mais Alimentos – Regularização Fundiária",
+      "grupo_finalidade": "Regularização do imóvel rural",
+      "grupo_pronaf": "Pronaf Mais Alimentos",
+      "limite": {
+        "tipo": "fixo",
+        "valor": "40 mil"
+      },
+      "limite_mil_reais": {
+        "tipo": "fixo",
+        "valor": 40
+      },
+      "juros_aa_pct": 7.5,
+      "prazo_anos": 10,
+      "carencia_anos": 3,
+      "prazo_texto": "10 anos",
+      "carencia_texto": "3 anos",
+      "bonus_adimplencia": {
+        "tipo": "fixo",
+        "valor": "—"
+      },
+      "observacao": {
+        "tipo": "fixo",
+        "valor": null
+      },
+      "destaque": false,
+      "escopo": "individual",
+      "elegibilidade_js": "s=>fin(s,'fundiario')",
+      "elegibilidade": {
+        "op": "contem",
+        "campo": "finalidade",
+        "valor": "fundiario"
+      }
+    },
+    {
+      "id": "fund_mulher",
+      "nome": "Pronaf Mulher – Regularização Fundiária",
+      "grupo_finalidade": "Regularização do imóvel rural",
+      "grupo_pronaf": "Pronaf Mulher",
+      "limite": {
+        "tipo": "fixo",
+        "valor": "40 mil"
+      },
+      "limite_mil_reais": {
+        "tipo": "fixo",
+        "valor": 40
+      },
+      "juros_aa_pct": 7.5,
+      "prazo_anos": 10,
+      "carencia_anos": 3,
+      "prazo_texto": "10 anos",
+      "carencia_texto": "3 anos",
+      "bonus_adimplencia": {
+        "tipo": "fixo",
+        "valor": "—"
+      },
+      "observacao": {
+        "tipo": "fixo",
+        "valor": null
+      },
+      "destaque": false,
+      "escopo": "individual",
+      "elegibilidade_js": "s=>perf(s,'mulher')&&fin(s,'fundiario')",
+      "elegibilidade": {
+        "op": "e",
+        "args": [
+          {
+            "op": "contem",
+            "campo": "perfil",
+            "valor": "mulher"
+          },
+          {
+            "op": "contem",
+            "campo": "finalidade",
+            "valor": "fundiario"
+          }
+        ]
+      }
+    },
+    {
+      "id": "maisa_out",
+      "nome": "Pronaf Mais Alimentos – Infraestrutura",
+      "grupo_finalidade": "Outras melhorias na propriedade",
+      "grupo_pronaf": "Pronaf Mais Alimentos",
+      "limite": {
+        "tipo": "fixo",
+        "valor": "250 mil"
+      },
+      "limite_mil_reais": {
+        "tipo": "fixo",
+        "valor": 250
+      },
+      "juros_aa_pct": 2,
+      "prazo_anos": 10,
+      "carencia_anos": 3,
+      "prazo_texto": "10 anos",
+      "carencia_texto": "3 anos",
+      "bonus_adimplencia": {
+        "tipo": "fixo",
+        "valor": "—"
+      },
+      "observacao": {
+        "tipo": "fixo",
+        "valor": "Curral, armazém, irrigação, energia solar, internet, ordenhadeiras, tanques… Mulher agricultora acessa a linha Pronaf Mulher (ID 26) em vez desta."
+      },
+      "destaque": true,
+      "escopo": "individual",
+      "elegibilidade_js": "s=>fin(s,'outros_invest')",
+      "elegibilidade": {
+        "op": "contem",
+        "campo": "finalidade",
+        "valor": "outros_invest"
+      }
+    },
+    {
+      "id": "prod_or",
+      "nome": "Pronaf Produtivo Orientado (N, NE, CO)",
+      "grupo_finalidade": "Outras melhorias na propriedade",
+      "grupo_pronaf": "Pronaf Produtivo Orientado",
+      "limite": {
+        "tipo": "fixo",
+        "valor": "25 a 55 mil"
+      },
+      "limite_mil_reais": {
+        "tipo": "fixo",
+        "valor": 55
+      },
+      "juros_aa_pct": 2,
+      "prazo_anos": 10,
+      "carencia_anos": 3,
+      "prazo_texto": "10 anos",
+      "carencia_texto": "3 anos",
+      "bonus_adimplencia": {
+        "tipo": "fixo",
+        "valor": "R$ 4.500 a R$ 6.000"
+      },
+      "observacao": {
+        "tipo": "fixo",
+        "valor": "Apenas para imóveis no Norte, NE e CO. Inclui assistência técnica. Bônus em reais."
+      },
+      "destaque": true,
+      "escopo": "individual",
+      "elegibilidade_js": "s=>false",
+      "elegibilidade": {
+        "op": "const",
+        "valor": false
+      }
+    },
+    {
+      "id": "mulher_renda150",
+      "nome": "Pronaf Mulher – Demais Finalidades (até R$150mil)",
+      "grupo_finalidade": "Outras melhorias na propriedade",
+      "grupo_pronaf": "Pronaf Mulher",
+      "limite": {
+        "tipo": "fixo",
+        "valor": "100 mil"
+      },
+      "limite_mil_reais": {
+        "tipo": "fixo",
+        "valor": 100
+      },
+      "juros_aa_pct": 2,
+      "prazo_anos": 10,
+      "carencia_anos": 3,
+      "prazo_texto": "10 anos",
+      "carencia_texto": "3 anos",
+      "bonus_adimplencia": {
+        "tipo": "por_regiao",
+        "valor": {
+          "no": "Sim — 25% a 40% (Norte e Nordeste)",
+          "ne": "Sim — 25% a 40% (Norte e Nordeste)",
+          "co": "Sim — 25% (Centro-Oeste)",
+          "se": "Não (Sul e Sudeste)",
+          "su": "Não (Sul e Sudeste)"
+        },
+        "depende_renda": false
+      },
+      "observacao": {
+        "tipo": "fixo",
+        "valor": "Linha independente confirmada para mulheres com renda até R$ 150 mil. Juros de 2% ao ano."
+      },
+      "destaque": true,
+      "escopo": "individual",
+      "elegibilidade_js": "s=>perf(s,'mulher')&&(s.renda==='ate60k'||s.renda==='ate150k')&&fin(s,'outros_invest')",
+      "elegibilidade": {
+        "op": "e",
+        "args": [
+          {
+            "op": "e",
+            "args": [
+              {
+                "op": "contem",
+                "campo": "perfil",
+                "valor": "mulher"
+              },
+              {
+                "op": "ou",
+                "args": [
+                  {
+                    "op": "igual",
+                    "arg": {
+                      "op": "campo",
+                      "campo": "renda"
+                    },
+                    "valor": "ate60k"
+                  },
+                  {
+                    "op": "igual",
+                    "arg": {
+                      "op": "campo",
+                      "campo": "renda"
+                    },
+                    "valor": "ate150k"
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "op": "contem",
+            "campo": "finalidade",
+            "valor": "outros_invest"
+          }
+        ]
+      }
+    },
+    {
+      "id": "mulher_out",
+      "nome": "Pronaf Mulher – Infraestrutura",
+      "grupo_finalidade": "Outras melhorias na propriedade",
+      "grupo_pronaf": "Pronaf Mulher",
+      "limite": {
+        "tipo": "fixo",
+        "valor": "250 mil"
+      },
+      "limite_mil_reais": {
+        "tipo": "fixo",
+        "valor": 250
+      },
+      "juros_aa_pct": 2,
+      "prazo_anos": 10,
+      "carencia_anos": 3,
+      "prazo_texto": "10 anos",
+      "carencia_texto": "3 anos",
+      "bonus_adimplencia": {
+        "tipo": "fixo",
+        "valor": "—"
+      },
+      "observacao": {
+        "tipo": "fixo",
+        "valor": null
+      },
+      "destaque": false,
+      "escopo": "individual",
+      "elegibilidade_js": "s=>perf(s,'mulher')&&fin(s,'outros_invest')",
+      "elegibilidade": {
+        "op": "e",
+        "args": [
+          {
+            "op": "contem",
+            "campo": "perfil",
+            "valor": "mulher"
+          },
+          {
+            "op": "contem",
+            "campo": "finalidade",
+            "valor": "outros_invest"
+          }
+        ]
+      }
+    },
+    {
+      "id": "jovem_out",
+      "nome": "Pronaf Jovem – Investimento",
+      "grupo_finalidade": "Outras melhorias na propriedade",
+      "grupo_pronaf": "Pronaf Jovem",
+      "limite": {
+        "tipo": "fixo",
+        "valor": "50 mil"
+      },
+      "limite_mil_reais": {
+        "tipo": "fixo",
+        "valor": 50
+      },
+      "juros_aa_pct": 2,
+      "prazo_anos": 10,
+      "carencia_anos": 3,
+      "prazo_texto": "10 anos",
+      "carencia_texto": "3 anos",
+      "bonus_adimplencia": {
+        "tipo": "fixo",
+        "valor": "—"
+      },
+      "observacao": {
+        "tipo": "fixo",
+        "valor": "Linha independente do Pronaf B. Jovens com renda até R$ 50 mil podem acessar esta linha simultaneamente ao sublimite Pronaf B Jovem (R$ 8 mil)."
+      },
+      "destaque": true,
+      "escopo": "individual",
+      "elegibilidade_js": "s=>perf(s,'jovem')&&temQ(s)&&!fin(s,'custeio')&&!fin(s,'moradia')&&!fin(s,'fundiario')",
+      "elegibilidade": {
+        "op": "e",
+        "args": [
+          {
+            "op": "e",
+            "args": [
+              {
+                "op": "e",
+                "args": [
+                  {
+                    "op": "e",
+                    "args": [
+                      {
+                        "op": "contem",
+                        "campo": "perfil",
+                        "valor": "jovem"
+                      },
+                      {
+                        "op": "tem_alguma_finalidade"
+                      }
+                    ]
+                  },
+                  {
+                    "op": "nao",
+                    "arg": {
+                      "op": "contem",
+                      "campo": "finalidade",
+                      "valor": "custeio"
+                    }
+                  }
+                ]
+              },
+              {
+                "op": "nao",
+                "arg": {
+                  "op": "contem",
+                  "campo": "finalidade",
+                  "valor": "moradia"
+                }
+              }
+            ]
+          },
+          {
+            "op": "nao",
+            "arg": {
+              "op": "contem",
+              "campo": "finalidade",
+              "valor": "fundiario"
+            }
+          }
+        ]
+      }
+    },
+    {
+      "id": "b_habitacao",
+      "nome": "Pronaf B – Habitação Rural",
+      "grupo_finalidade": "Moradia rural",
+      "grupo_pronaf": "Pronaf B",
+      "limite": {
+        "tipo": "fixo",
+        "valor": "10 mil"
+      },
+      "limite_mil_reais": {
+        "tipo": "fixo",
+        "valor": 10
+      },
+      "juros_aa_pct": 0.5,
+      "prazo_anos": 5,
+      "carencia_anos": 0,
+      "prazo_texto": "5 anos",
+      "carencia_texto": "—",
+      "bonus_adimplencia": {
+        "tipo": "fixo",
+        "valor": "Sim — 40% (todas as regiões)"
+      },
+      "observacao": {
+        "tipo": "fixo",
+        "valor": "Recurso único de R$ 10 mil para reforma da moradia rural e/ou instalações sanitárias, para famílias com renda até R$ 60 mil. Parte do envelope Pronaf B (teto familiar R$ 74 mil)."
+      },
+      "destaque": true,
+      "escopo": "individual",
+      "elegibilidade_js": "s=>s.renda==='ate60k'&&fin(s,'moradia')",
+      "elegibilidade": {
+        "op": "e",
+        "args": [
+          {
+            "op": "igual",
+            "arg": {
+              "op": "campo",
+              "campo": "renda"
+            },
+            "valor": "ate60k"
+          },
+          {
+            "op": "contem",
+            "campo": "finalidade",
+            "valor": "moradia"
+          }
+        ]
+      }
+    },
+    {
+      "id": "maisa_mor_150",
+      "nome": "Pronaf Mais Alimentos – Habitação (até R$ 150 mil/ano)",
+      "grupo_finalidade": "Moradia rural",
+      "grupo_pronaf": "Pronaf Mais Alimentos",
+      "limite": {
+        "tipo": "fixo",
+        "valor": "100 mil"
+      },
+      "limite_mil_reais": {
+        "tipo": "fixo",
+        "valor": 100
+      },
+      "juros_aa_pct": 5,
+      "prazo_anos": 10,
+      "carencia_anos": 3,
+      "prazo_texto": "10 anos",
+      "carencia_texto": "3 anos",
+      "bonus_adimplencia": {
+        "tipo": "fixo",
+        "valor": "—"
+      },
+      "observacao": {
+        "tipo": "fixo",
+        "valor": "Taxa de 5% ao ano para famílias com renda até R$ 150 mil (faixa intermediária)."
+      },
+      "destaque": true,
+      "escopo": "individual",
+      "elegibilidade_js": "s=>fin(s,'moradia')&&(s.renda==='ate60k'||s.renda==='ate150k')",
+      "elegibilidade": {
+        "op": "e",
+        "args": [
+          {
+            "op": "contem",
+            "campo": "finalidade",
+            "valor": "moradia"
+          },
+          {
+            "op": "ou",
+            "args": [
+              {
+                "op": "igual",
+                "arg": {
+                  "op": "campo",
+                  "campo": "renda"
+                },
+                "valor": "ate60k"
+              },
+              {
+                "op": "igual",
+                "arg": {
+                  "op": "campo",
+                  "campo": "renda"
+                },
+                "valor": "ate150k"
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "id": "mulher_mor_150",
+      "nome": "Pronaf Mulher – Habitação (até R$ 150 mil/ano)",
+      "grupo_finalidade": "Moradia rural",
+      "grupo_pronaf": "Pronaf Mulher",
+      "limite": {
+        "tipo": "fixo",
+        "valor": "100 mil"
+      },
+      "limite_mil_reais": {
+        "tipo": "fixo",
+        "valor": 100
+      },
+      "juros_aa_pct": 5,
+      "prazo_anos": 10,
+      "carencia_anos": 3,
+      "prazo_texto": "10 anos",
+      "carencia_texto": "3 anos",
+      "bonus_adimplencia": {
+        "tipo": "fixo",
+        "valor": "—"
+      },
+      "observacao": {
+        "tipo": "fixo",
+        "valor": "Taxa de 5% ao ano para mulheres agricultoras com renda até R$ 150 mil (faixa intermediária)."
+      },
+      "destaque": true,
+      "escopo": "individual",
+      "elegibilidade_js": "s=>fin(s,'moradia')&&(s.renda==='ate60k'||s.renda==='ate150k')&&perf(s,'mulher')",
+      "elegibilidade": {
+        "op": "e",
+        "args": [
+          {
+            "op": "e",
+            "args": [
+              {
+                "op": "contem",
+                "campo": "finalidade",
+                "valor": "moradia"
+              },
+              {
+                "op": "ou",
+                "args": [
+                  {
+                    "op": "igual",
+                    "arg": {
+                      "op": "campo",
+                      "campo": "renda"
+                    },
+                    "valor": "ate60k"
+                  },
+                  {
+                    "op": "igual",
+                    "arg": {
+                      "op": "campo",
+                      "campo": "renda"
+                    },
+                    "valor": "ate150k"
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "op": "contem",
+            "campo": "perfil",
+            "valor": "mulher"
+          }
+        ]
+      }
+    },
+    {
+      "id": "pesca_f1",
+      "nome": "Pronaf Custeio – Faixa I (Aquicultura e Pesca)",
+      "grupo_finalidade": "Pesca artesanal e aquicultura",
+      "grupo_pronaf": "Pronaf Custeio – Faixa I",
+      "limite": {
+        "tipo": "fixo",
+        "valor": "250 mil"
+      },
+      "limite_mil_reais": {
+        "tipo": "fixo",
+        "valor": 250
+      },
+      "juros_aa_pct": 2,
+      "prazo_anos": 1.5,
+      "carencia_anos": 0,
+      "prazo_texto": "Até 2 anos",
+      "carencia_texto": "—",
+      "bonus_adimplencia": {
+        "tipo": "fixo",
+        "valor": "—"
+      },
+      "observacao": {
+        "tipo": "fixo",
+        "valor": "Aquicultura e pesca artesanal enquadradas na Faixa I — taxa de 2% ao ano."
+      },
+      "destaque": true,
+      "escopo": "individual",
+      "elegibilidade_js": "s=>fin(s,'pesca')",
+      "elegibilidade": {
+        "op": "contem",
+        "campo": "finalidade",
+        "valor": "pesca"
+      }
+    },
+    {
+      "id": "pesca_maisa",
+      "nome": "Pronaf Mais Alimentos – Pesca e Aquicultura",
+      "grupo_finalidade": "Pesca artesanal e aquicultura",
+      "grupo_pronaf": "Pronaf Mais Alimentos",
+      "limite": {
+        "tipo": "fixo",
+        "valor": "250 mil"
+      },
+      "limite_mil_reais": {
+        "tipo": "fixo",
+        "valor": 250
+      },
+      "juros_aa_pct": 2,
+      "prazo_anos": 10,
+      "carencia_anos": 3,
+      "prazo_texto": "10 anos",
+      "carencia_texto": "3 anos",
+      "bonus_adimplencia": {
+        "tipo": "fixo",
+        "valor": "—"
+      },
+      "observacao": {
+        "tipo": "fixo",
+        "valor": "Tanques, sistemas de aeração, barcos, redes e equipamentos de pesca artesanal. (ID 12 — taxa de 2% ao ano)"
+      },
+      "destaque": true,
+      "escopo": "individual",
+      "elegibilidade_js": "s=>fin(s,'pesca')",
+      "elegibilidade": {
+        "op": "contem",
+        "campo": "finalidade",
+        "valor": "pesca"
+      }
+    },
+    {
+      "id": "aac_ci",
+      "nome": "Pronaf A/A-C – Investimento para Cooperados",
+      "grupo_finalidade": "Investimento para cooperados",
+      "grupo_pronaf": "Pronaf A/A-C",
+      "limite": {
+        "tipo": "fixo",
+        "valor": "1 milhão"
+      },
+      "limite_mil_reais": {
+        "tipo": "fixo",
+        "valor": 1000
+      },
+      "juros_aa_pct": 3,
+      "prazo_anos": 8,
+      "carencia_anos": 2,
+      "prazo_texto": "8 anos",
+      "carencia_texto": "2 anos",
+      "bonus_adimplencia": {
+        "tipo": "fixo",
+        "valor": "—"
+      },
+      "observacao": {
+        "tipo": "fixo",
+        "valor": "Exclusivo para cooperativas A/A-C. O limite de investimento e o de capital de giro são alternativos — a cooperativa usa um ou outro ."
+      },
+      "destaque": true,
+      "escopo": "cooperativa",
+      "elegibilidade_js": "s=>s.coop_perfil==='coop_aac'&&(fin(s,'coop_agro_invest')||fin(s,'coop_bovino')||fin(s,'coop_maquinas')||fin(s,'coop_genetica'))",
+      "elegibilidade": {
+        "op": "e",
+        "args": [
+          {
+            "op": "igual",
+            "arg": {
+              "op": "campo",
+              "campo": "coop_perfil"
+            },
+            "valor": "coop_aac"
+          },
+          {
+            "op": "ou",
+            "args": [
+              {
+                "op": "ou",
+                "args": [
+                  {
+                    "op": "ou",
+                    "args": [
+                      {
+                        "op": "contem",
+                        "campo": "finalidade",
+                        "valor": "coop_agro_invest"
+                      },
+                      {
+                        "op": "contem",
+                        "campo": "finalidade",
+                        "valor": "coop_bovino"
+                      }
+                    ]
+                  },
+                  {
+                    "op": "contem",
+                    "campo": "finalidade",
+                    "valor": "coop_maquinas"
+                  }
+                ]
+              },
+              {
+                "op": "contem",
+                "campo": "finalidade",
+                "valor": "coop_genetica"
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "id": "aac_cg",
+      "nome": "Pronaf A/A-C – Capital de Giro",
+      "grupo_finalidade": "Capital de giro",
+      "grupo_pronaf": "Pronaf A/A-C",
+      "limite": {
+        "tipo": "fixo",
+        "valor": "1 milhão"
+      },
+      "limite_mil_reais": {
+        "tipo": "fixo",
+        "valor": 1000
+      },
+      "juros_aa_pct": 3,
+      "prazo_anos": 2,
+      "carencia_anos": 0.5,
+      "prazo_texto": "2 anos",
+      "carencia_texto": "6 meses",
+      "bonus_adimplencia": {
+        "tipo": "fixo",
+        "valor": "—"
+      },
+      "observacao": {
+        "tipo": "fixo",
+        "valor": "Capital de giro A/A-C. Alternativo ao limite de investimento — a cooperativa usa um ou outro ."
+      },
+      "destaque": true,
+      "escopo": "cooperativa",
+      "elegibilidade_js": "s=>s.coop_perfil==='coop_aac'&&(fin(s,'coop_giro')||fin(s,'coop_agro_custeio'))",
+      "elegibilidade": {
+        "op": "e",
+        "args": [
+          {
+            "op": "igual",
+            "arg": {
+              "op": "campo",
+              "campo": "coop_perfil"
+            },
+            "valor": "coop_aac"
+          },
+          {
+            "op": "ou",
+            "args": [
+              {
+                "op": "contem",
+                "campo": "finalidade",
+                "valor": "coop_giro"
+              },
+              {
+                "op": "contem",
+                "campo": "finalidade",
+                "valor": "coop_agro_custeio"
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "id": "coop_ig",
+      "nome": "Pronaf Mais Alimentos – Investimento para Cooperados",
+      "grupo_finalidade": "Investimento para cooperados",
+      "grupo_pronaf": "Pronaf Mais Alimentos",
+      "limite": {
+        "tipo": "fixo",
+        "valor": "8 milhões"
+      },
+      "limite_mil_reais": {
+        "tipo": "fixo",
+        "valor": 8000
+      },
+      "juros_aa_pct": 7.5,
+      "prazo_anos": 10,
+      "carencia_anos": 3,
+      "prazo_texto": "10 anos",
+      "carencia_texto": "3 anos",
+      "bonus_adimplencia": {
+        "tipo": "fixo",
+        "valor": "—"
+      },
+      "observacao": {
+        "tipo": "fixo",
+        "valor": null
+      },
+      "destaque": false,
+      "escopo": "cooperativa",
+      "elegibilidade_js": "s=>s.coop_perfil==='coop_geral'&&fin(s,'coop_invest_geral')",
+      "elegibilidade": {
+        "op": "e",
+        "args": [
+          {
+            "op": "igual",
+            "arg": {
+              "op": "campo",
+              "campo": "coop_perfil"
+            },
+            "valor": "coop_geral"
+          },
+          {
+            "op": "contem",
+            "campo": "finalidade",
+            "valor": "coop_invest_geral"
+          }
+        ]
+      }
+    },
+    {
+      "id": "coop_bov",
+      "nome": "Pronaf Mais Alimentos – Bovinocultura",
+      "grupo_finalidade": "Investimento para cooperados",
+      "grupo_pronaf": "Pronaf Mais Alimentos",
+      "limite": {
+        "tipo": "fixo",
+        "valor": "8 milhões"
+      },
+      "limite_mil_reais": {
+        "tipo": "fixo",
+        "valor": 8000
+      },
+      "juros_aa_pct": 7.5,
+      "prazo_anos": 10,
+      "carencia_anos": 3,
+      "prazo_texto": "10 anos",
+      "carencia_texto": "3 anos",
+      "bonus_adimplencia": {
+        "tipo": "fixo",
+        "valor": "—"
+      },
+      "observacao": {
+        "tipo": "fixo",
+        "valor": "Tanques de resfriamento, ordenhadeiras, formação/recuperação de pastagens, silagem e feno. Disponível para qualquer cooperativa da agricultura familiar."
+      },
+      "destaque": true,
+      "escopo": "cooperativa",
+      "elegibilidade_js": "s=>fin(s,'coop_bovino')",
+      "elegibilidade": {
+        "op": "contem",
+        "campo": "finalidade",
+        "valor": "coop_bovino"
+      }
+    },
+    {
+      "id": "coop_gen",
+      "nome": "Pronaf Mais Alimentos – Melhoramento Genético",
+      "grupo_finalidade": "Investimento para cooperados",
+      "grupo_pronaf": "Pronaf Mais Alimentos",
+      "limite": {
+        "tipo": "fixo",
+        "valor": "8 milhões"
+      },
+      "limite_mil_reais": {
+        "tipo": "fixo",
+        "valor": 8000
+      },
+      "juros_aa_pct": 2,
+      "prazo_anos": 7,
+      "carencia_anos": 1,
+      "prazo_texto": "7 anos",
+      "carencia_texto": "1 ano",
+      "bonus_adimplencia": {
+        "tipo": "fixo",
+        "valor": "—"
+      },
+      "observacao": {
+        "tipo": "fixo",
+        "valor": "Sêmen, óvulos e embriões para melhoramento genético bovino; inseminação artificial; transferência de embriões. Disponível para qualquer cooperativa da agricultura familiar."
+      },
+      "destaque": true,
+      "escopo": "cooperativa",
+      "elegibilidade_js": "s=>fin(s,'coop_genetica')",
+      "elegibilidade": {
+        "op": "contem",
+        "campo": "finalidade",
+        "valor": "coop_genetica"
+      }
+    },
+    {
+      "id": "coop_maq",
+      "nome": "Pronaf Mais Alimentos – Máquinas para Cooperados",
+      "grupo_finalidade": "Investimento para cooperados",
+      "grupo_pronaf": "Pronaf Mais Alimentos",
+      "limite": {
+        "tipo": "fixo",
+        "valor": "8 milhões"
+      },
+      "limite_mil_reais": {
+        "tipo": "fixo",
+        "valor": 8000
+      },
+      "juros_aa_pct": 7.5,
+      "prazo_anos": 8,
+      "carencia_anos": 3,
+      "prazo_texto": "8 anos",
+      "carencia_texto": "3 anos",
+      "bonus_adimplencia": {
+        "tipo": "fixo",
+        "valor": "—"
+      },
+      "observacao": {
+        "tipo": "fixo",
+        "valor": null
+      },
+      "destaque": false,
+      "escopo": "cooperativa",
+      "elegibilidade_js": "s=>fin(s,'coop_bovino')",
+      "elegibilidade": {
+        "op": "contem",
+        "campo": "finalidade",
+        "valor": "coop_bovino"
+      }
+    },
+    {
+      "id": "agro_invest",
+      "nome": "Pronaf Agroindústria – Investimento",
+      "grupo_finalidade": "Agroindústria",
+      "grupo_pronaf": "Pronaf Agroindústria",
+      "limite": {
+        "tipo": "fixo",
+        "valor": "R$ 50 milhões"
+      },
+      "limite_mil_reais": {
+        "tipo": "fixo",
+        "valor": 50000
+      },
+      "juros_aa_pct": 7.5,
+      "prazo_anos": 10,
+      "carencia_anos": 3,
+      "prazo_texto": "10 anos",
+      "carencia_texto": "3 anos",
+      "bonus_adimplencia": {
+        "tipo": "fixo",
+        "valor": "—"
+      },
+      "observacao": {
+        "tipo": "fixo",
+        "valor": "Cooperativa singular: 60–74,99% de sócios com CAF enquadrado no Pronaf, ROB anual de até R$ 100 milhões e no mínimo 55% da produção beneficiada oriunda de cooperados enquadrados no Pronaf. Cooperativa singular/central: no mínimo 75% de sócios com CAF enquadrado no Pronaf."
+      },
+      "destaque": true,
+      "escopo": "cooperativa",
+      "elegibilidade_js": "s=>(s.coop_perfil==='coop_geral'||s.coop_perfil==='coop_aac')&&fin(s,'coop_agro_invest')",
+      "elegibilidade": {
+        "op": "e",
+        "args": [
+          {
+            "op": "ou",
+            "args": [
+              {
+                "op": "igual",
+                "arg": {
+                  "op": "campo",
+                  "campo": "coop_perfil"
+                },
+                "valor": "coop_geral"
+              },
+              {
+                "op": "igual",
+                "arg": {
+                  "op": "campo",
+                  "campo": "coop_perfil"
+                },
+                "valor": "coop_aac"
+              }
+            ]
+          },
+          {
+            "op": "contem",
+            "campo": "finalidade",
+            "valor": "coop_agro_invest"
+          }
+        ]
+      }
+    },
+    {
+      "id": "agro_custeio",
+      "nome": "Pronaf Industrialização – Custeio",
+      "grupo_finalidade": "Agroindústria",
+      "grupo_pronaf": "Pronaf Industrialização",
+      "limite": {
+        "tipo": "fixo",
+        "valor": "R$ 35 milhões"
+      },
+      "limite_mil_reais": {
+        "tipo": "fixo",
+        "valor": 35000
+      },
+      "juros_aa_pct": 7.5,
+      "prazo_anos": 1,
+      "carencia_anos": 0,
+      "prazo_texto": "1 ano",
+      "carencia_texto": "—",
+      "bonus_adimplencia": {
+        "tipo": "fixo",
+        "valor": "—"
+      },
+      "observacao": {
+        "tipo": "fixo",
+        "valor": "Cooperativa singular: 60–74,99% de sócios com CAF enquadrado no Pronaf, ROB anual de até R$ 100 milhões e no mínimo 55% da produção beneficiada oriunda de cooperados enquadrados no Pronaf. Cooperativa singular/central: no mínimo 75% de sócios com CAF enquadrado no Pronaf."
+      },
+      "destaque": true,
+      "escopo": "cooperativa",
+      "elegibilidade_js": "s=>(s.coop_perfil==='coop_geral'||s.coop_perfil==='coop_aac')&&fin(s,'coop_agro_custeio')",
+      "elegibilidade": {
+        "op": "e",
+        "args": [
+          {
+            "op": "ou",
+            "args": [
+              {
+                "op": "igual",
+                "arg": {
+                  "op": "campo",
+                  "campo": "coop_perfil"
+                },
+                "valor": "coop_geral"
+              },
+              {
+                "op": "igual",
+                "arg": {
+                  "op": "campo",
+                  "campo": "coop_perfil"
+                },
+                "valor": "coop_aac"
+              }
+            ]
+          },
+          {
+            "op": "contem",
+            "campo": "finalidade",
+            "valor": "coop_agro_custeio"
+          }
+        ]
+      }
+    },
+    {
+      "id": "cotas_coop",
+      "nome": "Pronaf Cotas-Partes",
+      "grupo_finalidade": "Cotas-partes da cooperativa",
+      "grupo_pronaf": "Pronaf Cotas-Partes",
+      "limite": {
+        "tipo": "fixo",
+        "valor": "R$ 55 milhões"
+      },
+      "limite_mil_reais": {
+        "tipo": "fixo",
+        "valor": 55000
+      },
+      "juros_aa_pct": 7.5,
+      "prazo_anos": 6,
+      "carencia_anos": 0,
+      "prazo_texto": "6 anos",
+      "carencia_texto": "Sem carência",
+      "bonus_adimplencia": {
+        "tipo": "fixo",
+        "valor": "—"
+      },
+      "observacao": {
+        "tipo": "fixo",
+        "valor": "Cooperativa singular: 60–74,99% de sócios com CAF enquadrado no Pronaf, ROB anual de até R$ 100 milhões e no mínimo 55% da produção beneficiada oriunda de cooperados enquadrados no Pronaf. Cooperativa singular/central: no mínimo 75% de sócios com CAF enquadrado no Pronaf."
+      },
+      "destaque": true,
+      "escopo": "cooperativa",
+      "elegibilidade_js": "s=>(s.coop_perfil==='coop_geral'||s.coop_perfil==='coop_aac')&&fin(s,'coop_cotas')",
+      "elegibilidade": {
+        "op": "e",
+        "args": [
+          {
+            "op": "ou",
+            "args": [
+              {
+                "op": "igual",
+                "arg": {
+                  "op": "campo",
+                  "campo": "coop_perfil"
+                },
+                "valor": "coop_geral"
+              },
+              {
+                "op": "igual",
+                "arg": {
+                  "op": "campo",
+                  "campo": "coop_perfil"
+                },
+                "valor": "coop_aac"
+              }
+            ]
+          },
+          {
+            "op": "contem",
+            "campo": "finalidade",
+            "valor": "coop_cotas"
+          }
+        ]
+      }
+    },
+    {
+      "id": "cotas_c75_disabled",
+      "nome": "DISABLED",
+      "grupo_finalidade": "Cotas-partes da cooperativa",
+      "grupo_pronaf": "DISABLED",
+      "limite": {
+        "tipo": "fixo",
+        "valor": "55 milhões"
+      },
+      "limite_mil_reais": {
+        "tipo": "fixo",
+        "valor": 55000
+      },
+      "juros_aa_pct": 7.5,
+      "prazo_anos": 6,
+      "carencia_anos": 0,
+      "prazo_texto": "6 anos",
+      "carencia_texto": "—",
+      "bonus_adimplencia": {
+        "tipo": "fixo",
+        "valor": "—"
+      },
+      "observacao": {
+        "tipo": "fixo",
+        "valor": null
+      },
+      "destaque": true,
+      "escopo": "cooperativa",
+      "elegibilidade_js": "s=>false",
+      "elegibilidade": {
+        "op": "const",
+        "valor": false
+      }
+    }
+  ]
+}

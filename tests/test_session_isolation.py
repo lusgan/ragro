@@ -15,8 +15,9 @@ dados sempre esteve certa. O furo é aqui.
 import pytest
 
 # `frontend/` não é pacote instalado; o pythonpath do pytest.ini põe a raiz do
-# repo no sys.path, o que basta para o namespace package.
-app = pytest.importorskip("frontend.app")
+# repo no sys.path, o que basta para o namespace package. Os helpers de
+# session_state moraram em `frontend/app.py`; agora vivem em `frontend/state.py`.
+state_module = pytest.importorskip("frontend.state")
 
 
 @pytest.fixture
@@ -28,7 +29,7 @@ def session_state(monkeypatch) -> dict:
     as funções sob teste usam.
     """
     state: dict = {}
-    monkeypatch.setattr(app.st, "session_state", state)
+    monkeypatch.setattr(state_module.st, "session_state", state)
     return state
 
 
@@ -50,7 +51,7 @@ def test_troca_de_conta_descarta_o_estado_da_anterior(session_state):
     """O cenário relatado: usuário novo loga na aba onde outro já esteve."""
     session_state.update(_estado_logado_da_alice())
 
-    app.sync_user_scoped_state("bruno@example.com")
+    state_module.sync_user_scoped_state("bruno@example.com")
 
     assert "_user_id" not in session_state, "o id da alice seria reusado para o bruno"
     assert "active_conversation_id" not in session_state, "a conversa da alice seguiria aberta"
@@ -64,9 +65,9 @@ def test_logout_limpa_o_estado_antes_do_proximo_login(session_state):
     """
     session_state.update(_estado_logado_da_alice())
 
-    app.sync_user_scoped_state(None)
+    state_module.sync_user_scoped_state(None)
 
-    assert not any(k in session_state for k in app.USER_SCOPED_STATE_KEYS)
+    assert not any(k in session_state for k in state_module.USER_SCOPED_STATE_KEYS)
 
 
 def test_mesma_conta_mantem_a_conversa_aberta(session_state):
@@ -75,17 +76,17 @@ def test_mesma_conta_mantem_a_conversa_aberta(session_state):
     """
     session_state.update(_estado_logado_da_alice())
 
-    app.sync_user_scoped_state("alice@example.com")
+    state_module.sync_user_scoped_state("alice@example.com")
 
     assert session_state["_user_id"] == 1
     assert session_state["active_conversation_id"] == 42
 
 
 def test_sessao_limpa_no_primeiro_login_e_no_op(session_state):
-    app.sync_user_scoped_state(None)
+    state_module.sync_user_scoped_state(None)
     assert session_state == {}
 
-    app.sync_user_scoped_state("alice@example.com")
+    state_module.sync_user_scoped_state("alice@example.com")
     assert session_state == {}
 
 
@@ -95,7 +96,7 @@ def test_preserva_estado_que_nao_e_do_usuario(session_state):
     """
     session_state.update(_estado_logado_da_alice())
 
-    app.sync_user_scoped_state("bruno@example.com")
+    state_module.sync_user_scoped_state("bruno@example.com")
 
     assert session_state["search_mode"] == "hybrid"
 
@@ -112,4 +113,4 @@ def test_toda_chave_de_usuario_esta_declarada_para_limpeza():
         "active_conversation_id",
         "renaming_conversation_id",
     }
-    assert set(app.USER_SCOPED_STATE_KEYS) == esperadas
+    assert set(state_module.USER_SCOPED_STATE_KEYS) == esperadas

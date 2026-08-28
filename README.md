@@ -6,6 +6,18 @@ Para a interface web e o deploy, veja [frontend/README.md](frontend/README.md).
 
 ---
 
+## Agentes
+
+Além do Agente Q&A (pergunta e resposta sobre o MCR), o chat tem um Agente Conselheiro:
+conduz uma triagem e um questionário curto e recomenda a linha de crédito rural (PRONAF/PRONAMP)
+adequada ao perfil informado. Um orquestrador decide, a cada turno, qual dos dois responde.
+
+Números de crédito (limite, juros, prazo, carência) nunca saem do LLM — vêm sempre de um motor de
+regras determinístico. Fluxo completo, estado persistido e as garantias de terminação em
+[docs/arquitetura-agentes.md](docs/arquitetura-agentes.md).
+
+---
+
 ## Instalação
 
 Requer Python 3.11+ e uma chave [Voyage AI](https://www.voyageai.com/).
@@ -93,10 +105,10 @@ data/MCR - docx/
               └── N_-_Secao.docx
           │
           ▼
-    src/chunker.py          → LangChain Documents (1 doc/seção, split se > 28k tokens)
+    src/ingestion/chunker.py → LangChain Documents (1 doc/seção, split se > 28k tokens)
           │
           ▼
-    src/indexer.py
+    src/ingestion/indexer.py
       ├── voyage-4-large    → dense embeddings (1024-d, cosine)
       └── Qdrant/bm25       → sparse embeddings
           │
@@ -105,7 +117,7 @@ data/MCR - docx/
           │
      (query time)
           │
-    src/retriever.py
+    src/rag/retriever.py
       ├── voyage-4-lite     → dense query embedding
       ├── Qdrant/bm25       → sparse query embedding
       └── RRF Fusion        → top-5 resultados híbridos
@@ -121,9 +133,9 @@ saída para forçar a re-extração.
 
 | Módulo (`python -m ...`)              | Saída                  | Requer                        |
 |---------------------------------------|------------------------|-------------------------------|
-| `src.extraction.opendataloader`       | `data/MCR.md`          | servidor `docling-fast` (ver abaixo) |
-| `src.extraction.adobe_pdfservices`    | `data/MCR_adobe.md`    | credenciais Adobe             |
-| `src.extraction.adobe_pdf_to_json`    | `data/MCR_adobe.json`  | credenciais Adobe             |
+| `src.ingestion.extraction.opendataloader`       | `data/MCR.md`          | servidor `docling-fast` (ver abaixo) |
+| `src.ingestion.extraction.adobe_pdfservices`    | `data/MCR_adobe.md`    | credenciais Adobe             |
+| `src.ingestion.extraction.adobe_pdf_to_json`    | `data/MCR_adobe.json`  | credenciais Adobe             |
 
 O OpenDataLoader precisa do servidor hybrid num terminal separado, com o venv ativado:
 
@@ -147,13 +159,17 @@ posse do `conversation_id`.
 
 ```bash
 pip install -r requirements-dev.txt
-docker compose up -d postgres-test
+docker compose --profile test up -d postgres-test
 
 TEST_DATABASE_URL=postgresql+psycopg://postgres:postgres@localhost:5433/ragro_test pytest
 ```
 
+O serviço `postgres-test` fica atrás do profile `test` — um `docker compose up -d` comum (sem
+`--profile test`) não o sobe.
+
 Use o Postgres descartável do compose, **nunca** o Supabase: os testes truncam as tabelas.
-Sem `TEST_DATABASE_URL` os testes de banco são pulados e só os de `session_state` rodam.
+Sem `TEST_DATABASE_URL` os testes de banco são pulados e só os de `session_state` e os de
+`src/agents`/`src/programs` (offline, sem Vertex/Qdrant/Postgres) rodam.
 
 `tests/schema.sql` é uma **réplica** do schema do Supabase, que foi criado à mão e não é
 versionado — ao alterar as tabelas lá, atualize esse arquivo, senão os testes validam um
@@ -166,19 +182,46 @@ schema obsoleto.
 ```
 data/
   MCR - docx/            Arquivos .docx do MCR (fonte dos chunks)
-docs/                    Documentação técnica
+docs/
+  arquitetura-agentes.md   Fluxo do orquestrador e dos dois agentes
 src/
   config.py              load_dotenv, tokenizer Voyage, make_chunk_id
-  chunker.py             .docx → LangChain Documents
-  database.py            Qdrant client e inicialização da coleção
-  db.py                  Engine SQLAlchemy para o Postgres (Supabase)
-  auth.py                Login/cadastro (hash bcrypt, código de convite)
-  chat_history.py        Conversas e mensagens, escopadas por user_id
-  indexer.py             Embeddings, upsert e chunk_stats
-  retriever.py           Busca híbrida RRF
   main.py                Orquestrador CLI
-  extraction/            Extratores PDF (OpenDataLoader, Adobe, Azure)
-frontend/app.py          Interface Streamlit
-tests/                   Isolamento entre usuários (camada de dados e sessão)
+  llm/
+    client.py              Único ponto de contato com o Vertex AI (gerar_texto/gerar_json)
+  rag/
+    qdrant.py              Qdrant client e inicialização da coleção
+    retriever.py           Busca híbrida RRF + filtro por metadados
+    rewriter.py            Condensação de pergunta + inferência de filtro
+    judge.py               LLM-as-a-judge sobre os trechos recuperados
+    answer.py              Geração de resposta (Q&A e recomendação do Conselheiro)
+    snapshot.py            Formato leve de trechos, para persistir/exibir
+  agents/
+    types.py               Rota, Resposta — tipos compartilhados
+    orchestrator.py        Roteamento entre Q&A e Conselheiro
+    qa.py                  Agente Q&A
+    advisor.py             Agente Conselheiro (extrai/conduz/recomenda)
+  programs/
+    base.py                Protocolo comum aos programas de crédito
+    triagem.py             Resolve qual programa conduzir
+    pronaf/                Engine de regras do PRONAF (ruleset.json)
+    pronamp/               Perguntas do PRONAMP (recomendação via RAG)
+  storage/
+    db.py                  Engine SQLAlchemy para o Postgres (Supabase)
+    auth.py                Login/cadastro (hash bcrypt, código de convite)
+    chat_history.py        Conversas e mensagens, escopadas por user_id
+    advisor_state.py       Sessão do Agente Conselheiro, uma por conversa
+  ingestion/
+    chunker.py             .docx → LangChain Documents
+    indexer.py             Embeddings, upsert e chunk_stats
+    extraction/            Extratores PDF (OpenDataLoader, Adobe, Azure)
+frontend/
+  app.py                 Entrypoint fino: config da página e orquestração de alto nível
+  state.py               session_state escopado por usuário
+  views/
+    auth.py                Login, cadastro e require_login
+    sidebar.py             Lista de conversas e configurações de busca
+    chat.py                Histórico, chips de opção e o turno de chat
+tests/                   Agentes/programas (offline), isolamento entre usuários, sessão
 qdrant_db/               Storage do Qdrant via Docker volume (não versionado)
 ```

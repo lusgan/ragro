@@ -9,9 +9,9 @@ from qdrant_client.models import PointStruct, SparseVector
 from sqlalchemy import text
 
 from .chunker import get_all_chunks
-from .config import build_bm25, count_tokens, make_chunk_id
-from .database import COLLECTION_NAME
-from .db import get_engine
+from ..config import build_bm25, count_tokens, make_chunk_id
+from ..rag.qdrant import COLLECTION_NAME
+from ..storage.db import get_engine
 
 logger = logging.getLogger(__name__)
 

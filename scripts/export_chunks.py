@@ -6,12 +6,12 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).parent.parent))
 logging.disable(logging.CRITICAL)
 
-from src.word_chunker import get_all_chunks_from_docx
+from src.ingestion.chunker import get_all_chunks
 
 OUTPUT = Path("reports/chunks_dump.txt")
 OUTPUT.parent.mkdir(exist_ok=True)
 
-docs = get_all_chunks_from_docx("data/MCR - docx")
+docs = get_all_chunks("data/MCR - docx")
 
 with OUTPUT.open("w", encoding="utf-8") as f:
     f.write("DUMP DE CHUNKS — MCR\n")

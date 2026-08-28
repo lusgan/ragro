@@ -2,7 +2,7 @@
 
 ## Visão Geral
 
-O MCR (Manual de Crédito Rural) é publicado pelo BCB (Banco Central do Brasil) como um conjunto de arquivos `.docx`, organizados em capítulos e seções. O módulo `src/word_chunker.py` é responsável por converter esses arquivos em `Document`s do LangChain, prontos para indexação no Qdrant.
+O MCR (Manual de Crédito Rural) é publicado pelo BCB (Banco Central do Brasil) como um conjunto de arquivos `.docx`, organizados em capítulos e seções. O módulo `src/ingestion/chunker.py` é responsável por converter esses arquivos em `Document`s do LangChain, prontos para indexação no Qdrant.
 
 ---
 
@@ -150,9 +150,9 @@ Cada `Document` produzido contém os seguintes campos em `metadata`:
 ## API Pública
 
 ```python
-from src.word_chunker import get_all_chunks_from_docx
+from src.ingestion.chunker import get_all_chunks
 
-docs = get_all_chunks_from_docx("data/MCR - docx")
+docs = get_all_chunks("data/MCR - docx")
 # → list[Document], ~100 Documents a partir de 98 seções
 ```
 

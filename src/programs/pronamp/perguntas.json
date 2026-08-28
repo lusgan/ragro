@@ -1,0 +1,36 @@
+{
+  "fonte": "Manual de Crédito Rural (MCR) 8-1 e 7-4, Banco Central do Brasil — https://www.bcb.gov.br/estabilidadefinanceira/creditorural",
+  "plano_safra": "2026/2027",
+  "perguntas": {
+    "finalidade": {
+      "texto": "Para que você precisa do crédito?",
+      "multipla": true,
+      "opcoes": [
+        {"v": "custeio", "l": "Custeio da safra"},
+        {"v": "investimento", "l": "Investimento — máquinas, equipamentos, infraestrutura"},
+        {"v": "comercializacao", "l": "Comercialização da produção"}
+      ]
+    },
+    "atividade": {
+      "texto": "Qual é a atividade principal da propriedade?",
+      "multipla": false,
+      "opcoes": [
+        {"v": "lavoura", "l": "Lavoura"},
+        {"v": "pecuaria", "l": "Pecuária"},
+        {"v": "ambas", "l": "Lavoura e pecuária"}
+      ]
+    },
+    "regiao": {
+      "texto": "Em qual região você mora?",
+      "multipla": false,
+      "opcoes": [
+        {"v": "no", "l": "Norte"},
+        {"v": "ne", "l": "Nordeste"},
+        {"v": "co", "l": "Centro-Oeste"},
+        {"v": "se", "l": "Sudeste"},
+        {"v": "su", "l": "Sul"}
+      ]
+    }
+  },
+  "ordem_perguntas": ["finalidade", "atividade", "regiao"]
+}

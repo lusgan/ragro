@@ -4,9 +4,9 @@ from fastembed.sparse.sparse_embedding_base import SparseTextEmbeddingBase
 
 from . import config  # noqa: F401 — aciona load_dotenv() e logging.basicConfig
 from .config import build_bm25
-from .database import COLLECTION_NAME, get_client, init_collection
-from .indexer import run_indexing
-from .retriever import SearchMode, search
+from .rag.qdrant import COLLECTION_NAME, get_client, init_collection
+from .ingestion.indexer import run_indexing
+from .rag.retriever import SearchMode, search
 
 logger = logging.getLogger(__name__)
 

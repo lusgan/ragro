@@ -16,11 +16,11 @@ from qdrant_client.models import PointStruct, SparseVector
 
 from src import config  # noqa: F401
 
-logging.getLogger("src.chunker").setLevel(logging.WARNING)
+logging.getLogger("src.ingestion.chunker").setLevel(logging.WARNING)
 
-from src.chunker import get_all_chunks
+from src.ingestion.chunker import get_all_chunks
 from src.config import build_bm25, count_tokens, make_chunk_id
-from src.database import COLLECTION_NAME, get_client
+from src.rag.qdrant import COLLECTION_NAME, get_client
 
 logger = logging.getLogger(__name__)
 

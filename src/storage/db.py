@@ -13,7 +13,7 @@ import os
 from sqlalchemy import create_engine
 from sqlalchemy.engine import Engine
 
-from . import config  # noqa: F401 — aciona load_dotenv()
+from .. import config  # noqa: F401 — aciona load_dotenv()
 
 _engine: Engine | None = None
 

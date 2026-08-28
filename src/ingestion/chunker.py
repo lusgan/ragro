@@ -1,6 +1,6 @@
 """
-word_chunker.py
----------------
+chunker.py
+----------
 Converte arquivos .docx do MCR (BCB) em LangChain Documents prontos
 para indexação no Qdrant.
 
@@ -21,8 +21,8 @@ O chunker:
      RecursiveCharacterTextSplitter
 
 Uso:
-    from src.word_chunker import get_all_chunks_from_docx
-    docs = get_all_chunks_from_docx("data/MCR - docx")
+    from src.ingestion.chunker import get_all_chunks
+    docs = get_all_chunks("data/MCR - docx")
 """
 
 import logging
@@ -34,7 +34,7 @@ from docx import Document as DocxDocument
 from langchain_core.documents import Document
 from langchain_text_splitters import RecursiveCharacterTextSplitter
 
-from .config import count_tokens
+from ..config import count_tokens
 
 logger = logging.getLogger(__name__)
 
