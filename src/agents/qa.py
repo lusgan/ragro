@@ -31,8 +31,16 @@ def responder(
     `advisor_state` — `estado=None` sempre, porque o Q&A não é sessão.
     """
     reescrita = rewriter.reescrever(pergunta, historico)
+    # `complementar=True`: o filtro de seção aqui é um palpite do rewriter, não
+    # uma certeza — mesmo quando ele acerta o capítulo, pode não ser o único
+    # relevante. Ver `retriever.buscar_com_fallback`.
     resultados, _ = buscar_com_fallback(
-        reescrita.consulta, client, bm25_model, mode=mode, secoes=reescrita.secoes_mcr
+        reescrita.consulta,
+        client,
+        bm25_model,
+        mode=mode,
+        secoes=reescrita.secoes_mcr,
+        complementar=True,
     )
 
     if not resultados:

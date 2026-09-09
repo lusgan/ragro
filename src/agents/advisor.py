@@ -26,7 +26,7 @@ from src.llm.client import MODELO_RAPIDO
 from src.programs import triagem
 from src.programs.base import Pergunta, RespostasInvalidas, Slot
 from src.rag import answer, judge
-from src.rag.retriever import SearchMode, buscar_com_fallback
+from src.rag.retriever import SearchMode, buscar_com_fallback, dedup_por_id
 from src.rag.snapshot import snapshot
 
 logger = logging.getLogger(__name__)
@@ -240,16 +240,6 @@ def _conduzir(pergunta: Pergunta, estado: dict, historico: list[dict] | None) ->
 # --- RECOMENDAR --------------------------------------------------------------
 
 
-def _dedup_por_id(acumulados: list, novos: list) -> list:
-    vistos = {ponto.id for ponto in acumulados}
-    saida = list(acumulados)
-    for ponto in novos:
-        if ponto.id not in vistos:
-            vistos.add(ponto.id)
-            saida.append(ponto)
-    return saida
-
-
 def _recomendar(
     estado: dict,
     historico: list[dict] | None,
@@ -285,7 +275,7 @@ def _recomendar(
     # `julgamento` sai sempre atribuído antes de ser usado abaixo.
     for _ in range(MAX_RODADAS_BUSCA):
         novos, _ = buscar_com_fallback(consulta, client, bm25_model, mode=mode, secoes=rec.secoes_mcr)
-        acumulados = _dedup_por_id(acumulados, novos)
+        acumulados = dedup_por_id(acumulados, novos)
         julgamento = judge.avaliar(consulta, acumulados)
         if julgamento.suficiente or not julgamento.consulta_extra or julgamento.consulta_extra == consulta:
             break  # sem progresso é o mesmo que suficiente

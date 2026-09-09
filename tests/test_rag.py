@@ -11,6 +11,7 @@ dict, no formato que `retriever.search` devolveria de verdade (`point.payload`).
 from __future__ import annotations
 
 from dataclasses import dataclass
+from types import SimpleNamespace
 from typing import Any
 
 import pytest
@@ -129,6 +130,76 @@ def test_buscar_com_fallback_mantem_filtro_quando_a_busca_filtrada_acha_algo(
 
     assert resultados == ["resultado-com-filtro"]
     assert filtro_aplicado is True
+
+
+def test_buscar_com_fallback_complementar_mescla_filtrado_e_sem_filtro(monkeypatch) -> None:
+    """`complementar=True`: mesmo com a busca filtrada achando resultado, o
+    capítulo inferido pode não ser o único relevante — mescla com a busca sem
+    filtro em vez de devolver só o filtrado."""
+    filtrado = SimpleNamespace(id="cap-1")
+    repetido = SimpleNamespace(id="cap-3-a")  # aparece nas duas buscas
+    novo = SimpleNamespace(id="cap-3-b")
+
+    def fake_search(query_text, client, bm25_model, mode=SearchMode.HYBRID, filtro=None):
+        if filtro is not None:
+            return [filtrado, repetido]
+        return [repetido, novo]
+
+    monkeypatch.setattr(retriever, "search", fake_search)
+
+    resultados, filtro_aplicado = retriever.buscar_com_fallback(
+        "pergunta qualquer",
+        client=None,
+        bm25_model=None,
+        mode=SearchMode.HYBRID,
+        secoes=[{"capitulo_num": 1}],
+        complementar=True,
+    )
+
+    assert filtro_aplicado is True
+    assert resultados == [filtrado, repetido, novo]  # filtrado primeiro, sem duplicar id repetido
+
+
+def test_buscar_com_fallback_complementar_nao_muda_o_fallback_quando_filtro_zera(
+    monkeypatch,
+) -> None:
+    """`complementar=True` só entra em jogo quando o filtro acha algo — se ele
+    zera, o caminho continua sendo o fallback de sempre (uma única busca extra,
+    não duas)."""
+    chamadas = []
+
+    def fake_search(query_text, client, bm25_model, mode=SearchMode.HYBRID, filtro=None):
+        chamadas.append(filtro)
+        return [] if filtro is not None else ["resultado-sem-filtro"]
+
+    monkeypatch.setattr(retriever, "search", fake_search)
+
+    resultados, filtro_aplicado = retriever.buscar_com_fallback(
+        "pergunta qualquer",
+        client=None,
+        bm25_model=None,
+        mode=SearchMode.HYBRID,
+        secoes=[{"capitulo_num": 1}],
+        complementar=True,
+    )
+
+    assert resultados == ["resultado-sem-filtro"]
+    assert filtro_aplicado is False
+    assert len(chamadas) == 2
+
+
+# --- dedup_por_id -------------------------------------------------------------
+
+
+def test_dedup_por_id_mantem_prioridade_e_descarta_repetidos() -> None:
+    a = SimpleNamespace(id="a")
+    b = SimpleNamespace(id="b")
+    b_repetido = SimpleNamespace(id="b")
+    c = SimpleNamespace(id="c")
+
+    resultado = retriever.dedup_por_id([a, b], [b_repetido, c])
+
+    assert resultado == [a, b, c]
 
 
 def test_buscar_com_fallback_sem_secoes_busca_direto_sem_filtro(monkeypatch) -> None:
