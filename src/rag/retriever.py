@@ -142,6 +142,25 @@ def filtro_de_secoes(secoes: list[dict]) -> Filter | None:
     return Filter(should=should) if should else None
 
 
+def dedup_por_id(acumulados: list, novos: list) -> list:
+    """Mescla duas listas de pontos do Qdrant, descartando repetidos por `id`.
+
+    `acumulados` mantém prioridade — a ordem final começa com ele inteiro, e
+    `novos` só contribui as entradas que ainda não apareceram. Compartilhada
+    entre `buscar_com_fallback` (filtrado + sem filtro) e o laço de re-busca do
+    Conselheiro (`advisor._recomendar`), que acumula candidatos de consultas
+    sucessivas — é a mesma operação nos dois lugares, só muda a origem das
+    listas.
+    """
+    vistos = {ponto.id for ponto in acumulados}
+    saida = list(acumulados)
+    for ponto in novos:
+        if ponto.id not in vistos:
+            vistos.add(ponto.id)
+            saida.append(ponto)
+    return saida
+
+
 def buscar_com_fallback(
     query_text: str,
     client: QdrantClient,
@@ -149,6 +168,7 @@ def buscar_com_fallback(
     *,
     mode: SearchMode = SearchMode.HYBRID,
     secoes: list[dict],
+    complementar: bool = False,
 ) -> tuple[list, bool]:
     """Busca com o filtro inferido de `secoes` e, se vier vazia, busca de novo
     sem filtro nenhum. Devolve `(resultados, filtro_aplicado)`.
@@ -166,13 +186,24 @@ def buscar_com_fallback(
     perdê-la inteira seria trocar um refinamento opcional por uma falha
     obrigatória. Um erro que não vem do filtro reaparece na segunda tentativa e
     sobe normalmente.
+
+    `complementar=True` cobre um palpite parcial, não só um palpite errado: o
+    capítulo inferido pode estar certo e ainda assim não ser o único relevante
+    (ex.: a pergunta cabe nos capítulos 1 e 3, mas o rewriter só reconheceu o
+    1). Nesse modo, mesmo quando a busca filtrada acha resultado ela não é
+    devolvida sozinha — roda-se também a busca sem filtro e mescla-se as duas
+    (`dedup_por_id`, filtrados primeiro), deixando o judge decidir relevância
+    sobre o conjunto maior. É opt-in porque só faz sentido quando o filtro é
+    mesmo um palpite; o Conselheiro (`advisor._recomendar`) passa um filtro
+    fixo, resolvido pelo programa, não uma inferência, e usa o padrão
+    `complementar=False` para não pagar uma busca extra sem necessidade.
     """
     filtro = filtro_de_secoes(secoes)
     if filtro is None:
         return search(query_text, client, bm25_model, mode), False
 
     try:
-        resultados = search(query_text, client, bm25_model, mode, filtro=filtro)
+        filtrados = search(query_text, client, bm25_model, mode, filtro=filtro)
     except UnexpectedResponse:
         logger.warning(
             "Busca filtrada recusada pelo Qdrant (seções=%s) — refazendo sem filtro. "
@@ -180,9 +211,13 @@ def buscar_com_fallback(
             secoes,
             exc_info=True,
         )
-        resultados = []
+        filtrados = []
 
-    if resultados:
-        return resultados, True
+    if not filtrados:
+        return search(query_text, client, bm25_model, mode), False
 
-    return search(query_text, client, bm25_model, mode), False
+    if not complementar:
+        return filtrados, True
+
+    sem_filtro = search(query_text, client, bm25_model, mode)
+    return dedup_por_id(filtrados, sem_filtro), True
