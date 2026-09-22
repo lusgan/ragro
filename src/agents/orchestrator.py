@@ -7,15 +7,18 @@ Duas divergências em relação ao diagrama (`docs/arquitetura-agentes.md`):
    `triagem`/`coleta`), a rota é `conselheiro` por padrão — sem essa regra,
    uma resposta de slot como "uns 80 mil por ano" não parece pedido de
    aconselhamento e vazaria para o Q&A no meio do questionário. O LLM só é
-   consultado para detectar **mudança de assunto**, e só uma resposta clara
-   muda a rota; qualquer outra coisa (incluindo falha do classificador)
+   consultado para saber se a mensagem **responde à pergunta pendente**;
+   uma pergunta nova ou uma recusa do questionário tira a conversa dele e
+   suspende a sessão (`fase = "suspenso"`), que deixa de ser sticky até o
+   classificador mandar de volta para o conselheiro. Falha do classificador
    mantém a sessão.
 2. **Falha do classificador cai para `qa`.** O Q&A é o fluxo que já existe e
    sempre responde alguma coisa; uma indisponibilidade do classificador não
    pode derrubar a conversa.
 
-O orquestrador só decide a rota — suspender ou retomar a sessão do
-conselheiro é responsabilidade de `advisor.py`. Por isso `rotear` nunca
+O orquestrador só decide a rota — suspender (`advisor.suspender`) e retomar
+a sessão é responsabilidade de quem chama e de `advisor.py`; a rota só
+sinaliza a suspensão em `Rota.suspender_sessao`. Por isso `rotear` nunca
 levanta e nunca mexe em `estado`.
 """
 
@@ -30,12 +33,20 @@ MAX_HISTORY_MESSAGES = 6
 # --- classificação sem sessão aberta -----------------------------------
 
 CLASSIFICADOR_PROMPT = (
-    "Você decide qual agente deve responder a uma pergunta sobre crédito rural.\n\n"
-    "- 'qa': a pessoa pergunta sobre regras, condições, definições ou qualquer "
-    "informação factual do Manual de Crédito Rural (MCR).\n"
-    "- 'conselheiro': a pessoa quer saber qual linha de crédito serve para ela, "
-    "pede uma recomendação, ou começa a descrever a própria situação (renda, "
-    "atividade, perfil) para obter uma indicação.\n\n"
+    "Você decide qual agente deve responder a uma mensagem sobre crédito rural. "
+    "Decida pela intenção da mensagem, não por ela conter números ou dados de "
+    "renda.\n\n"
+    "- 'qa': a pessoa quer uma resposta direta — regras, condições, "
+    "definições, limites, ou se um caso se enquadra num programa. Vale também "
+    "para casos hipotéticos ou de terceiros, mesmo com valores concretos "
+    "(ex.: 'um produtor com renda de R$ 220 mil pode se enquadrar no "
+    "Pronaf?', 'qual o teto de renda do Pronamp?').\n"
+    "- 'conselheiro': a pessoa pede que o sistema indique qual linha de "
+    "crédito serve para o próprio caso, quer uma recomendação ou simulação "
+    "guiada, ou pede para continuar uma simulação interrompida (ex.: 'qual "
+    "crédito rural serve para mim?', 'quero simular um financiamento', "
+    "'vamos continuar a simulação').\n\n"
+    "Na dúvida, responda 'qa'.\n\n"
     "Responda em JSON com o campo 'agente' contendo exatamente 'qa' ou "
     "'conselheiro'."
 )
@@ -48,26 +59,27 @@ CLASSIFICADOR_SCHEMA = {
 
 # --- roteamento sticky (sessão do conselheiro aberta) ------------------
 
-MUDANCA_ASSUNTO_PROMPT = (
+SESSAO_ABERTA_PROMPT = (
     "Uma conversa está no meio de um questionário de recomendação de crédito "
-    "rural (o Agente Conselheiro está perguntando renda, perfil, finalidade "
-    "etc.). Abaixo está a última pergunta feita ao usuário pelo questionário "
-    "(se houver) e a mensagem que ele acabou de enviar.\n\n"
-    "Decida: a mensagem do usuário é uma resposta ao questionário (continua o "
-    "mesmo assunto, mesmo que pareça só um número, uma palavra ou uma frase "
-    "curta) ou uma mudança clara de assunto (uma pergunta nova, sem relação "
-    "com o questionário)?\n\n"
-    "Só responda 'mudou_assunto': true quando a mudança de assunto for "
-    "inequívoca. Na dúvida, responda false — o questionário continua.\n\n"
-    "Responda em JSON com o campo 'mudou_assunto' (booleano)."
+    "rural: o assistente fez ao usuário a última pergunta que aparece no "
+    "HISTÓRICO (renda, perfil, finalidade etc.). Classifique a mensagem que o "
+    "usuário acabou de enviar:\n\n"
+    "- 'responde': responde ou tenta responder à pergunta do questionário, "
+    "mesmo que seja só um número, uma palavra, uma opção ou uma frase curta "
+    "(ex.: 'uns 80 mil por ano', 'sim', 'pessoa física').\n"
+    "- 'pergunta': em vez de responder, faz uma pergunta própria — sobre o "
+    "mesmo assunto ou outro — esperando uma resposta direta.\n"
+    "- 'recusa': não quer continuar o questionário (ex.: 'só quero saber se "
+    "pode ou não', 'não quero responder isso', 'pare').\n\n"
+    "Responda em JSON com o campo 'tipo' contendo exatamente 'responde', "
+    "'pergunta' ou 'recusa'."
 )
 
-MUDANCA_ASSUNTO_SCHEMA = {
+SESSAO_ABERTA_SCHEMA = {
     "type": "object",
-    "properties": {"mudou_assunto": {"type": "boolean"}},
-    "required": ["mudou_assunto"],
+    "properties": {"tipo": {"type": "string", "enum": ["responde", "pergunta", "recusa"]}},
+    "required": ["tipo"],
 }
-
 
 def _formatar_historico(historico: list[dict]) -> str:
     speaker = {"user": "Usuário", "assistant": "Assistente"}
@@ -75,20 +87,28 @@ def _formatar_historico(historico: list[dict]) -> str:
 
 
 def _rotear_sessao_aberta(pergunta: str, historico: list[dict] | None) -> Rota:
-    """Sessão do conselheiro aberta: a rota é `conselheiro` por padrão — só uma
-    mudança de assunto clara e confirmada pelo LLM muda isso. `gerar_json`
-    devolvendo `None`, ou qualquer valor que não seja `True` explícito para
-    'mudou_assunto', é tratado como "continua o questionário": é a leitura
-    conservadora que evita vazar uma resposta de slot para o Q&A.
+    """Sessão do conselheiro aberta: a rota é `conselheiro` por padrão. Só uma
+    classificação explícita de 'pergunta' ou 'recusa' tira a conversa do
+    questionário — e aí a sessão é suspensa, senão o turno seguinte voltaria
+    a ser sticky e puxaria o usuário de volta. `gerar_json` devolvendo
+    `None`, ou um valor fora do enum, é tratado como "continua o
+    questionário": é a leitura conservadora que evita vazar uma resposta de
+    slot para o Q&A.
     """
-    prompt = f"{MUDANCA_ASSUNTO_PROMPT}\n\n"
+    prompt = f"{SESSAO_ABERTA_PROMPT}\n\n"
     if historico:
         prompt += f"HISTÓRICO:\n{_formatar_historico(historico[-MAX_HISTORY_MESSAGES:])}\n\n"
     prompt += f"MENSAGEM DO USUÁRIO: {pergunta}"
 
-    resultado = llm_client.gerar_json(prompt, schema=MUDANCA_ASSUNTO_SCHEMA, modelo=MODELO_RAPIDO)
-    if isinstance(resultado, dict) and resultado.get("mudou_assunto") is True:
-        return Rota("qa", motivo="mudança de assunto detectada durante o questionário", fonte="llm")
+    resultado = llm_client.gerar_json(prompt, schema=SESSAO_ABERTA_SCHEMA, modelo=MODELO_RAPIDO)
+    tipo = resultado.get("tipo") if isinstance(resultado, dict) else None
+    if tipo in ("pergunta", "recusa"):
+        return Rota(
+            "qa",
+            motivo=f"usuário saiu do questionário ({tipo})",
+            fonte="llm",
+            suspender_sessao=True,
+        )
 
     return Rota("conselheiro", motivo="sessão de aconselhamento em andamento", fonte="sticky")
 
@@ -114,6 +134,8 @@ def _rotear_sem_sessao(pergunta: str, historico: list[dict] | None) -> Rota:
 def rotear(pergunta: str, historico: list[dict] | None = None, estado: dict | None = None) -> Rota:
     """Decide entre `qa` e `conselheiro` para este turno. Nunca levanta, nunca
     mexe em `estado` — só lê `estado["fase"]` para saber se há sessão aberta.
+    Uma sessão suspensa não é sticky: passa pelo classificador comum, e se
+    ele escolher `conselheiro` o `advisor` retoma de onde parou.
     """
     if estado and estado.get("fase") in ("triagem", "coleta"):
         return _rotear_sessao_aberta(pergunta, historico)

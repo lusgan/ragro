@@ -48,8 +48,17 @@ Decide entre `qa` e `conselheiro`. Duas divergências em relação ao diagrama:
    pergunta. Isso quebra o conselheiro: no meio do questionário, "uns 80 mil
    por ano" ou "sim, sou mulher" não parecem pedido de aconselhamento e cairiam
    no Q&A. Com um `advisor_state` aberto (`fase` em `triagem`/`coleta`), a rota
-   é `conselheiro` por padrão; o LLM só é consultado para detectar **mudança de
-   assunto** — e nesse caso a sessão do conselheiro é suspensa, não descartada.
+   é `conselheiro` por padrão; o LLM só é consultado para saber se a mensagem
+   **responde à pergunta pendente**. Uma pergunta própria ou uma recusa do
+   questionário ("só quero saber se pode") vai para o Q&A e suspende a sessão
+   (`fase = "suspenso"`), sem descartar as respostas. Suspensa, ela deixa de
+   ser sticky: o turno passa pelo classificador comum, e se ele escolher
+   `conselheiro` a sessão retoma da fase em que parou.
+
+   O classificador sem sessão aberta decide pela intenção, não pela presença
+   de números: "um produtor com renda de R$ 220 mil pode se enquadrar no
+   Pronaf?" é `qa`. Na dúvida vai para `qa` — errar para o Q&A custa uma
+   resposta; errar para o conselheiro prende o usuário num questionário.
 
 2. **Falha do classificador cai para `qa`.** O Q&A é o fluxo que já existe e
    sempre responde alguma coisa. Uma indisponibilidade do classificador não
@@ -97,7 +106,8 @@ Persistido em `conversations.advisor_state` (JSONB), uma sessão por conversa:
 
 ```json
 {
-  "fase": "triagem | coleta | concluido",
+  "fase": "triagem | coleta | concluido | suspenso",
+  "fase_suspensa": "triagem | coleta (só quando fase == suspenso)",
   "programa": "pronaf | pronamp | outros | null",
   "triagem": {"renda": "...", "renda_da_atividade": "..."},
   "respostas": {"tipo": "individual", "renda": "ate60k", "perfil": ["mulher"]},

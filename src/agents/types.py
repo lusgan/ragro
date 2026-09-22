@@ -21,6 +21,9 @@ class Rota:
     agente: Literal["qa", "conselheiro"]
     motivo: str
     fonte: Literal["sticky", "llm", "fallback"]  # de onde veio a decisão, para depuração
+    # O usuário saiu de uma sessão aberta do conselheiro: quem chama grava
+    # `advisor.suspender(estado)`, já que o Q&A nunca devolve estado.
+    suspender_sessao: bool = False
 
 
 @dataclass(frozen=True)

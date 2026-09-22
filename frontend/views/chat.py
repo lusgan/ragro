@@ -134,6 +134,11 @@ def handle_new_message(prompt: str, user_id: int, client, bm25_model, history_ms
 
         estado = advisor_state.carregar(conversation_id, user_id)
         rota = orchestrator.rotear(prompt, llm_history, estado)
+        if rota.suspender_sessao and estado is not None:
+            # Grava antes de responder: o usuário já saiu do questionário,
+            # mesmo que o Q&A falhe neste turno.
+            estado = advisor.suspender(estado)
+            advisor_state.salvar(conversation_id, user_id, estado)
 
         with st.spinner("Pensando..."):
             try:
