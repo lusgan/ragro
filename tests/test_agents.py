@@ -19,6 +19,8 @@ import json
 import re
 from types import SimpleNamespace
 
+import pytest
+
 import src.programs as programs
 from src.agents import advisor, orchestrator, qa
 from src.llm import client as llm_client
@@ -84,10 +86,11 @@ def _make_gerar_json(*, extrair=None, conduzir=None):
 def test_roteamento_sticky_mantem_conselheiro_para_resposta_de_slot(monkeypatch) -> None:
     """No meio do questionário, uma resposta de slot ('uns 80 mil por ano') não
     parece pedido de aconselhamento e vazaria para o Q&A sem o sticky routing."""
-    monkeypatch.setattr(llm_client, "gerar_json", lambda *a, **k: {"mudou_assunto": False})
+    monkeypatch.setattr(llm_client, "gerar_json", lambda *a, **k: {"tipo": "responde"})
     rota = orchestrator.rotear("uns 80 mil por ano", historico=None, estado=_estado(fase="coleta"))
     assert rota.agente == "conselheiro"
     assert rota.fonte == "sticky"
+    assert rota.suspender_sessao is False
 
 
 def test_roteamento_sticky_mantem_conselheiro_quando_classificador_falha(monkeypatch) -> None:
@@ -108,21 +111,41 @@ def test_classificador_sem_sessao_aberta_cai_para_qa_quando_falha(monkeypatch) -
     assert rota.fonte == "fallback"
 
 
-def test_mudanca_de_assunto_clara_rotea_para_qa_sem_orquestrador_limpar_estado(monkeypatch) -> None:
-    """Uma mudança de assunto inequívoca muda a rota para `qa` — mas suspender
-    a sessão do conselheiro é responsabilidade do `advisor`, não do
-    orquestrador: `estado` sai intacto."""
+@pytest.mark.parametrize("tipo", ["pergunta", "recusa"])
+def test_sair_do_questionario_rotea_para_qa_e_pede_suspensao_sem_mexer_no_estado(
+    monkeypatch, tipo
+) -> None:
+    """Uma pergunta própria ou uma recusa ('só quero saber se pode ou não')
+    tira a conversa do questionário e pede a suspensão da sessão — mas quem
+    suspende é quem chama, não o orquestrador: `estado` sai intacto."""
     estado_original = _estado(fase="coleta", respostas={"tipo": "individual"})
     estado_copia = dict(estado_original)  # cópia rasa só para comparar depois
 
-    monkeypatch.setattr(llm_client, "gerar_json", lambda *a, **k: {"mudou_assunto": True})
+    monkeypatch.setattr(llm_client, "gerar_json", lambda *a, **k: {"tipo": tipo})
     rota = orchestrator.rotear(
-        "na verdade, qual o telefone do Banco do Brasil?", historico=None, estado=estado_original
+        "só quero saber se ele pode ou não se enquadrar", historico=None, estado=estado_original
     )
 
     assert rota.agente == "qa"
     assert rota.fonte == "llm"
+    assert rota.suspender_sessao is True
     assert estado_original == estado_copia
+
+
+def test_sessao_suspensa_nao_e_sticky(monkeypatch) -> None:
+    """Suspensa, a sessão passa pelo classificador comum — senão o primeiro
+    'sim' depois de sair puxaria o usuário de volta para o questionário."""
+    schemas = []
+
+    def _fake(prompt, *, schema, modelo=None):
+        schemas.append(schema)
+        return {"agente": "qa"}
+
+    monkeypatch.setattr(llm_client, "gerar_json", _fake)
+    rota = orchestrator.rotear("sim", historico=None, estado=_estado(fase="suspenso"))
+
+    assert rota.agente == "qa"
+    assert schemas == [orchestrator.CLASSIFICADOR_SCHEMA]
 
 
 # --- Agente Q&A ----------------------------------------------------------
@@ -464,6 +487,39 @@ def test_sessao_concluida_reinicia_coleta_mantendo_triagem_e_programa(monkeypatc
 
     # `responder` não pode ter mutado o estado original que recebeu.
     assert estado_anterior == estado_original_congelado
+
+
+# --- Agente Conselheiro: suspensão e retomada -----------------------------
+
+
+def test_suspender_preserva_respostas_esconde_chips_e_nao_muta_original() -> None:
+    estado = _estado(fase="coleta", respostas={"tipo": "individual"}, opcoes_visiveis=True)
+    congelado = json.loads(json.dumps(estado))
+
+    suspenso = advisor.suspender(estado)
+
+    assert suspenso["fase"] == "suspenso"
+    assert suspenso["fase_suspensa"] == "coleta"
+    assert suspenso["respostas"] == {"tipo": "individual"}
+    assert advisor.pergunta_pendente(suspenso) is None
+    assert estado == congelado
+
+
+def test_sessao_suspensa_retoma_da_fase_em_que_parou(monkeypatch) -> None:
+    """Voltar ao conselheiro depois de uma dúvida não pode refazer o que o
+    usuário já respondeu: retoma a coleta no slot seguinte."""
+    estado = advisor.suspender(
+        _estado(fase="coleta", programa="pronaf", respostas={"tipo": "individual", "renda": "ate500k"})
+    )
+    monkeypatch.setattr(llm_client, "gerar_json", _make_gerar_json())
+
+    resposta = advisor.responder("vamos continuar a simulação", None, estado, None, None)
+
+    assert resposta.estado["fase"] == "coleta"
+    assert "fase_suspensa" not in resposta.estado
+    assert resposta.estado["respostas"] == {"tipo": "individual", "renda": "ate500k"}
+    assert resposta.pergunta is not None
+    assert resposta.pergunta.id == "perfil"
 
 
 # --- Agente Conselheiro: pergunta_pendente (chips do frontend) -------------

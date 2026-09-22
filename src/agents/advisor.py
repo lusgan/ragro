@@ -322,6 +322,21 @@ def _copiar_estado(estado: dict) -> dict:
     return copy.deepcopy(estado)
 
 
+def suspender(estado: dict) -> dict:
+    """Suspende uma sessão aberta quando o usuário sai do questionário (ver
+    `Rota.suspender_sessao`). Devolve um estado novo, sem mexer no recebido:
+    as respostas ficam guardadas e `fase_suspensa` lembra onde retomar. Fora
+    da fase `suspenso` a sessão deixa de ser sticky e os chips somem
+    (`pergunta_pendente` devolve `None`).
+    """
+    novo = _copiar_estado(estado)
+    novo["fase_suspensa"] = novo["fase"]
+    novo["fase"] = "suspenso"
+    novo["opcoes_visiveis"] = False
+    novo["atualizado_em"] = _agora_iso()
+    return novo
+
+
 def pergunta_pendente(estado: dict | None) -> Pergunta | None:
     """Recomputa a pergunta pendente do engine a partir de um `estado`
     persistido, para o frontend re-renderizar as opções de resposta depois de
@@ -359,6 +374,11 @@ def responder(
     """Conduz um turno do Agente Conselheiro. Nunca mexe em `estado` — o novo
     estado sai só em `Resposta.estado`; quem chama decide se persiste."""
     estado_atual = _copiar_estado(estado) if estado else _estado_inicial()
+
+    if estado_atual["fase"] == "suspenso":
+        # O classificador mandou de volta para o conselheiro: retoma a fase em
+        # que o usuário saiu, com as respostas que ele já tinha dado.
+        estado_atual["fase"] = estado_atual.pop("fase_suspensa")
 
     if estado_atual["fase"] == "concluido":
         # Retomar uma sessão terminada começa uma coleta nova, mas a renda
