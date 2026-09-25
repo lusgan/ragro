@@ -6,6 +6,11 @@ trechos, relevantes ou não. Este módulo faz uma chamada `gerar_json`
 resposta, e opcionalmente sugere uma nova consulta quando os trechos
 relevantes não bastam.
 
+Modelo e tamanho do trecho são parâmetros de `avaliar`, com os padrões
+escolhidos por medição — ver `MAX_CHARS_POR_TRECHO` abaixo e
+`eval/judge_sweep.py`, que reexecuta só o julgamento sobre candidatos já
+salvos para comparar configurações sem refazer busca nem geração.
+
 Um juiz indisponível nunca pode reduzir o que o usuário recebe: se
 `gerar_json` falhar, a decisão segura é manter todos os trechos e seguir
 direto para a geração, como se o julgamento nunca tivesse acontecido.
@@ -18,10 +23,22 @@ from dataclasses import dataclass
 from src.llm import client as llm_client
 from src.llm.client import MODELO_RAPIDO
 
-# Cap por trecho: uma seção longa do MCR não pode, sozinha, estourar o prompt
-# do juiz — o julgamento não precisa do texto inteiro, só o bastante para
-# decidir relevância.
-MAX_CHARS_POR_TRECHO = 1200
+# Cap por trecho, medido e não arbitrado (`eval/judge_sweep.py`, rodada 01).
+# Uma seção do MCR tem em média 12,6 mil caracteres. Com o cap antigo de 1200
+# o juiz decidia relevância vendo ~10% do texto e descartava a seção certa
+# quando a resposta estava no meio dela — sobre as mesmas 67 perguntas e os
+# mesmos candidatos, passar de 1200 para 20000 levou a precisão do contexto de
+# 0,60 para 0,80 e a cobertura de 0,82 para 0,90.
+#
+# O ganho de precisão vem de o juiz descartar MAIS, não menos: os trechos
+# aprovados caem de 2,4 para 1,5 por pergunta. Vendo a seção inteira ele
+# reconhece a certa e dispensa as vizinhas plausíveis, em vez de manter todas
+# na dúvida.
+#
+# Trocar o modelo por `gemini-2.5-pro` com o cap antigo rendeu bem menos
+# (precisão 0,62), então o juiz continua no MODELO_RAPIDO: a limitação era o
+# quanto ele enxergava, não a capacidade de julgar.
+MAX_CHARS_POR_TRECHO = 20_000
 
 JUDGE_PROMPT = (
     "Você avalia se os trechos abaixo, extraídos do Manual de Crédito Rural "
@@ -63,11 +80,11 @@ def _cabecalho(payload: dict) -> str:
     )
 
 
-def _formatar_trechos(trechos: list) -> str:
+def _formatar_trechos(trechos: list, max_chars: int = MAX_CHARS_POR_TRECHO) -> str:
     blocos = []
     for i, trecho in enumerate(trechos):
         p = trecho.payload
-        corpo = (p.get("text") or "")[:MAX_CHARS_POR_TRECHO]
+        corpo = (p.get("text") or "")[:max_chars]
         blocos.append(f"[{i}] {_cabecalho(p)}\n{corpo}")
     return "\n\n".join(blocos)
 
@@ -76,7 +93,13 @@ def _manter_tudo(trechos: list) -> Julgamento:
     return Julgamento(relevantes=list(range(len(trechos))), suficiente=True, consulta_extra=None)
 
 
-def avaliar(pergunta: str, trechos: list) -> Julgamento:
+def avaliar(
+    pergunta: str,
+    trechos: list,
+    *,
+    modelo: str = MODELO_RAPIDO,
+    max_chars: int = MAX_CHARS_POR_TRECHO,
+) -> Julgamento:
     """Classifica `trechos` quanto à relevância para `pergunta`.
 
     Sem trechos não há o que julgar. Se o modelo devolver índices fora do
@@ -88,8 +111,11 @@ def avaliar(pergunta: str, trechos: list) -> Julgamento:
     if not trechos:
         return Julgamento(relevantes=[], suficiente=True, consulta_extra=None)
 
-    prompt = f"{JUDGE_PROMPT}PERGUNTA: {pergunta}\n\nTRECHOS:\n{_formatar_trechos(trechos)}"
-    resultado = llm_client.gerar_json(prompt, schema=JUDGE_SCHEMA, modelo=MODELO_RAPIDO)
+    prompt = (
+        f"{JUDGE_PROMPT}PERGUNTA: {pergunta}\n\n"
+        f"TRECHOS:\n{_formatar_trechos(trechos, max_chars)}"
+    )
+    resultado = llm_client.gerar_json(prompt, schema=JUDGE_SCHEMA, modelo=modelo)
     if resultado is None:
         return _manter_tudo(trechos)
 
