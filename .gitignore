@@ -7,3 +7,7 @@ __pycache__/
 *.pyo
 .DS_Store
 data/MCR - docx
+venv-eval/
+eval/runs/
+!eval/runs/.gitkeep
+
