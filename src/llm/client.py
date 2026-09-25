@@ -16,6 +16,8 @@ conduz (roteamento, extração de slots, condução do questionário), e o `pro`
 import base64
 import json
 import logging
+import threading
+import time
 import os
 
 from google import genai
@@ -27,7 +29,13 @@ logger = logging.getLogger(__name__)
 MODELO_RAPIDO = "gemini-2.5-flash"      # roteamento, extração, condução
 MODELO_PRINCIPAL = "gemini-2.5-pro"     # redação da resposta final
 
-_client: genai.Client | None = None
+# Um cliente por thread, não um singleton: o `genai.Client` carrega um cliente
+# HTTP que não é seguro para uso concorrente — compartilhado entre threads ele
+# aparece fechado para umas enquanto outras ainda o usam ("Cannot send a
+# request, as the client has been closed"). Isso vale tanto para a avaliação,
+# que dispara perguntas em paralelo, quanto para o app: o Streamlit atende
+# cada sessão numa thread própria.
+_local = threading.local()
 
 
 def _load_sa_credentials() -> service_account.Credentials:
@@ -38,15 +46,16 @@ def _load_sa_credentials() -> service_account.Credentials:
 
 
 def _get_client() -> genai.Client:
-    global _client
-    if _client is None:
-        _client = genai.Client(
+    cliente = getattr(_local, "client", None)
+    if cliente is None:
+        cliente = genai.Client(
             vertexai=True,
             project=os.environ["GOOGLE_CLOUD_PROJECT"],
             location=os.environ.get("GOOGLE_CLOUD_LOCATION", "us-central1"),
             credentials=_load_sa_credentials(),
         )
-    return _client
+        _local.client = cliente
+    return cliente
 
 
 def disponivel() -> bool:
@@ -60,12 +69,49 @@ def disponivel() -> bool:
     return bool(os.environ.get("GOOGLE_CLOUD_PROJECT") and os.environ.get("GCLOUD_SA_BASE64"))
 
 
+# Falhas transitórias do Vertex que valem uma segunda tentativa: cota
+# estourada (429), instabilidade do serviço (5xx) e o cliente encontrado
+# fechado — este último aparece quando várias threads compartilham o cliente
+# em cache, e some ao recriá-lo.
+TENTATIVAS = 3
+ESPERA_INICIAL_S = 2.0
+
+_ERROS_TRANSITORIOS = ("429", "RESOURCE_EXHAUSTED", "503", "500", "UNAVAILABLE", "client has been closed")
+
+
+def _eh_transitorio(e: Exception) -> bool:
+    texto = str(e)
+    return any(marca in texto for marca in _ERROS_TRANSITORIOS)
+
+
+def _chamar_com_retentativa(executar, *, descricao: str):
+    """Executa `executar()`, repetindo em falha transitória com espera
+    crescente. Um erro definitivo (auth, prompt inválido) sobe na primeira
+    tentativa: repetir não mudaria o resultado e só atrasaria a resposta.
+    """
+    espera = ESPERA_INICIAL_S
+    for tentativa in range(1, TENTATIVAS + 1):
+        try:
+            return executar()
+        except Exception as e:
+            if not _eh_transitorio(e) or tentativa == TENTATIVAS:
+                raise
+            if "client has been closed" in str(e):
+                _local.client = None  # reconstrói só o cliente desta thread
+            logger.warning(
+                "%s: tentativa %d/%d falhou (%s); repetindo em %.0fs",
+                descricao, tentativa, TENTATIVAS, e, espera,
+            )
+            time.sleep(espera)
+            espera *= 2
+
+
 def gerar_texto(prompt: str, *, modelo: str = MODELO_PRINCIPAL) -> str:
     """Geração de texto livre — usada na redação final e na condensação de
     pergunta de acompanhamento."""
-    response = _get_client().models.generate_content(
-        model=modelo,
-        contents=prompt,
+    response = _chamar_com_retentativa(
+        lambda: _get_client().models.generate_content(model=modelo, contents=prompt),
+        descricao="gerar_texto",
     )
     return response.text
 
@@ -79,13 +125,16 @@ def gerar_json(prompt: str, *, schema: dict, modelo: str = MODELO_RAPIDO) -> dic
     sistema nunca pode travar porque um classificador ficou indisponível.
     """
     try:
-        response = _get_client().models.generate_content(
-            model=modelo,
-            contents=prompt,
-            config=types.GenerateContentConfig(
-                response_mime_type="application/json",
-                response_schema=schema,
+        response = _chamar_com_retentativa(
+            lambda: _get_client().models.generate_content(
+                model=modelo,
+                contents=prompt,
+                config=types.GenerateContentConfig(
+                    response_mime_type="application/json",
+                    response_schema=schema,
+                ),
             ),
+            descricao="gerar_json",
         )
     except Exception as e:  # falha de rede, auth, quota etc.
         logger.warning("gerar_json: chamada ao Vertex falhou: %s", e)
